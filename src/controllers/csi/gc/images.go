@@ -18,16 +18,16 @@ func (gc *CSIGarbageCollector) runSharedImagesGarbageCollection(ctx context.Cont
 		return nil
 	}
 
-	imagesToDelete, err := gc.collectUnusedImageDirs(ctx, imageDirs)
+	binsToDelete, err := gc.collectUnusedAgentBins(ctx, imageDirs)
 	if err != nil {
 		return err
 	}
-	if len(imagesToDelete) == 0 {
+	if len(binsToDelete) == 0 {
 		log.Info("no shared image dirs to delete on the node")
 		return nil
 	}
 
-	return deleteImageDirs(gc.fs, imagesToDelete)
+	return deleteImageDirs(gc.fs, binsToDelete)
 }
 
 func (gc *CSIGarbageCollector) getSharedImageDirs() ([]os.FileInfo, error) {
@@ -42,9 +42,9 @@ func (gc *CSIGarbageCollector) getSharedImageDirs() ([]os.FileInfo, error) {
 	return imageDirs, nil
 }
 
-func (gc *CSIGarbageCollector) collectUnusedImageDirs(ctx context.Context, imageDirs []os.FileInfo) ([]string, error) {
+func (gc *CSIGarbageCollector) collectUnusedAgentBins(ctx context.Context, imageDirs []os.FileInfo) ([]string, error) {
 	var toDelete []string
-	usedImageDigests, err := gc.getUsedImageDigests(ctx)
+	usedAgentBins, err := gc.getUsedAgentBins(ctx)
 	if err != nil {
 		log.Info("failed to get the used image digests")
 		return nil, err
@@ -54,20 +54,14 @@ func (gc *CSIGarbageCollector) collectUnusedImageDirs(ctx context.Context, image
 			continue
 		}
 		imageDigest := imageDir.Name()
-		if !usedImageDigests[imageDigest] {
-			toDelete = append(toDelete, gc.path.AgentSharedBinaryDirForImage(imageDigest))
+		if !usedAgentBins[imageDigest] {
+			toDelete = append(toDelete, gc.path.AgentSharedBinaryDirForAgent(imageDigest))
 		}
 	}
 	return toDelete, nil
 }
 
-func (gc *CSIGarbageCollector) getUsedImageDigests(ctx context.Context) (map[string]bool, error) {
-	usedImageDigests, err := gc.db.GetUsedImageDigests(ctx)
-	if err != nil {
-		log.Info("failed to get the used image digests")
-		return nil, err
-	}
-
+func (gc *CSIGarbageCollector) getUsedAgentBins(ctx context.Context) (map[string]bool, error) {
 	// If a shared image was used during mount, the version of a Volume is the imageDigest.
 	// A Volume can still reference versions that are not imageDigests.
 	// However, this shouldn't cause issues as those versions don't matter in this context.
@@ -76,10 +70,7 @@ func (gc *CSIGarbageCollector) getUsedImageDigests(ctx context.Context) (map[str
 		log.Info("failed to get all used versions")
 		return nil, err
 	}
-	for version := range usedVersions {
-		usedImageDigests[version] = true
-	}
-	return usedImageDigests, nil
+	return usedVersions, nil
 }
 
 func deleteImageDirs(fs afero.Fs, imageDirs []string) error {

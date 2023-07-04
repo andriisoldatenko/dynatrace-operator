@@ -7,11 +7,9 @@ import (
 
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/csi/metadata"
 	"github.com/Dynatrace/dynatrace-operator/src/dockerconfig"
-	dtypes "github.com/Dynatrace/dynatrace-operator/src/dtclient"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/common"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/symlink"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/zip"
-	"github.com/Dynatrace/dynatrace-operator/src/processmoduleconfig"
 	"github.com/containers/image/v5/docker/reference"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -56,38 +54,38 @@ func (installer Installer) ImageDigest() string {
 func (installer *Installer) InstallAgent(targetDir string) (bool, error) {
 	log.Info("installing agent from image")
 
+	if installer.isAlreadyDownloaded(targetDir) {
+		log.Info("agent already installed", "target dir", targetDir)
+		return false, nil
+	}
+
 	err := installer.fs.MkdirAll(installer.props.PathResolver.AgentSharedBinaryDirBase(), common.MkDirFileMode)
 	if err != nil {
 		log.Info("failed to create the base shared agent directory", "err", err)
 		return false, errors.WithStack(err)
 	}
 
-	if err := installer.installAgentFromImage(); err != nil {
+	log.Info("installing agent", "target dir", targetDir)
+	if err := installer.installAgentFromImage(targetDir); err != nil {
 		_ = installer.fs.RemoveAll(targetDir)
 		log.Info("failed to install agent from image", "err", err)
 		return false, errors.WithStack(err)
 	}
 
-	sharedDir := installer.props.PathResolver.AgentSharedBinaryDirForImage(installer.ImageDigest())
-	if err := symlink.CreateSymlinkForCurrentVersionIfNotExists(installer.fs, sharedDir); err != nil {
+	// sharedDir := installer.props.PathResolver.AgentSharedBinaryDirForImage(installer.ImageDigest())
+	if err := symlink.CreateSymlinkForCurrentVersionIfNotExists(installer.fs, targetDir); err != nil {
 		_ = installer.fs.RemoveAll(targetDir)
-		_ = installer.fs.RemoveAll(sharedDir)
 		log.Info("failed to create symlink for agent installation", "err", err)
 		return false, errors.WithStack(err)
 	}
 	return true, nil
 }
 
-func (installer Installer) UpdateProcessModuleConfig(targetDir string, processModuleConfig *dtypes.ProcessModuleConfig) error {
-	sourceDir := installer.props.PathResolver.AgentSharedBinaryDirForImage(installer.ImageDigest())
-	return processmoduleconfig.CreateAgentConfigDir(installer.fs, targetDir, sourceDir, processModuleConfig)
-}
-
 func (installer Installer) Cleanup() error {
 	return installer.props.DockerConfig.Cleanup(afero.Afero{Fs: installer.fs})
 }
 
-func (installer *Installer) installAgentFromImage() error {
+func (installer *Installer) installAgentFromImage(targetDir string) error {
 	defer installer.fs.RemoveAll(CacheDir)
 	err := installer.fs.MkdirAll(CacheDir, common.MkDirFileMode)
 	if err != nil {
@@ -95,11 +93,6 @@ func (installer *Installer) installAgentFromImage() error {
 		return errors.WithStack(err)
 	}
 	image := installer.props.ImageUri
-
-	if installer.isAlreadyDownloaded(installer.ImageDigest()) {
-		log.Info("image is already installed", "image", image, "digest", installer.ImageDigest())
-		return nil
-	}
 
 	sourceCtx, sourceRef, err := getSourceInfo(CacheDir, *installer.props)
 	if err != nil {
@@ -116,7 +109,7 @@ func (installer *Installer) installAgentFromImage() error {
 	err = installer.extractAgentBinariesFromImage(
 		imagePullInfo{
 			imageCacheDir:  imageCacheDir,
-			targetDir:      installer.props.PathResolver.AgentSharedBinaryDirForImage(installer.ImageDigest()),
+			targetDir:      targetDir,
 			sourceCtx:      sourceCtx,
 			destinationCtx: destinationCtx,
 			sourceRef:      sourceRef,
@@ -130,9 +123,8 @@ func (installer *Installer) installAgentFromImage() error {
 	return nil
 }
 
-func (installer Installer) isAlreadyDownloaded(imageDigestEncoded string) bool {
-	sharedDir := installer.props.PathResolver.AgentSharedBinaryDirForImage(imageDigestEncoded)
-	_, err := installer.fs.Stat(sharedDir)
+func (installer Installer) isAlreadyDownloaded(targetDir string) bool {
+	_, err := installer.fs.Stat(targetDir)
 	return !os.IsNotExist(err)
 }
 

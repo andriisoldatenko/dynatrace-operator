@@ -36,6 +36,6 @@ func TestIsAlreadyDownloaded(t *testing.T) {
 
 func testFileSystemWithSharedDirPresent(pathResolver metadata.PathResolver, imageDigest string) afero.Fs {
 	fs := afero.NewMemMapFs()
-	fs.MkdirAll(pathResolver.AgentSharedBinaryDirForImage(imageDigest), 0777)
+	fs.MkdirAll(pathResolver.AgentSharedBinaryDirForAgent(imageDigest), 0777)
 	return fs
 }

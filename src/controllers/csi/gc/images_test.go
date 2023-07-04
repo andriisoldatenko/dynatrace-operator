@@ -49,7 +49,7 @@ func TestRunSharedImagesGarbageCollection(t *testing.T) {
 		}
 		err := gc.runSharedImagesGarbageCollection(ctx)
 		require.NoError(t, err)
-		_, err = fs.Stat(gc.path.AgentSharedBinaryDirForImage(testImageDigest))
+		_, err = fs.Stat(gc.path.AgentSharedBinaryDirForAgent(testImageDigest))
 		require.Error(t, err)
 		assert.True(t, os.IsNotExist(err))
 	})
@@ -69,7 +69,7 @@ func TestRunSharedImagesGarbageCollection(t *testing.T) {
 		err := gc.runSharedImagesGarbageCollection(ctx)
 		require.NoError(t, err)
 
-		_, err = fs.Stat(testPathResolver.AgentSharedBinaryDirForImage(testImageDigest))
+		_, err = fs.Stat(testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest))
 		require.NoError(t, err)
 	})
 	t.Run("deletes nothing, because of volume metadata present", func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestRunSharedImagesGarbageCollection(t *testing.T) {
 		err := gc.runSharedImagesGarbageCollection(ctx)
 		require.NoError(t, err)
 
-		_, err = fs.Stat(testPathResolver.AgentSharedBinaryDirForImage(testImageDigest))
+		_, err = fs.Stat(testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest))
 		require.NoError(t, err)
 	})
 }
@@ -123,7 +123,7 @@ func TestCollectUnusedImageDirs(t *testing.T) {
 			db:   &metadata.FakeFailDB{},
 			path: testPathResolver,
 		}
-		_, err := gc.collectUnusedImageDirs(ctx, nil)
+		_, err := gc.collectUnusedAgentBins(ctx, nil)
 		require.Error(t, err)
 	})
 	t.Run("no error on empty db", func(t *testing.T) {
@@ -131,7 +131,7 @@ func TestCollectUnusedImageDirs(t *testing.T) {
 			db:   metadata.FakeMemoryDB(),
 			path: testPathResolver,
 		}
-		dirs, err := gc.collectUnusedImageDirs(ctx, nil)
+		dirs, err := gc.collectUnusedAgentBins(ctx, nil)
 		require.NoError(t, err)
 		assert.Nil(t, dirs)
 	})
@@ -141,11 +141,11 @@ func TestCollectUnusedImageDirs(t *testing.T) {
 			path: testPathResolver,
 		}
 		fs := createTestSharedImageDir(t)
-		testDir := testPathResolver.AgentSharedBinaryDirForImage(testImageDigest)
+		testDir := testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest)
 		fileInfo, err := fs.Stat(testDir)
 		require.NoError(t, err)
 
-		dirs, err := gc.collectUnusedImageDirs(ctx, []os.FileInfo{fileInfo})
+		dirs, err := gc.collectUnusedAgentBins(ctx, []os.FileInfo{fileInfo})
 		require.NoError(t, err)
 		assert.Len(t, dirs, 1)
 		assert.Equal(t, testDir, dirs[0])
@@ -162,10 +162,10 @@ func TestCollectUnusedImageDirs(t *testing.T) {
 			ImageDigest:   testImageDigest,
 		})
 		fs := createTestSharedImageDir(t)
-		fileInfo, err := fs.Stat(testPathResolver.AgentSharedBinaryDirForImage(testImageDigest))
+		fileInfo, err := fs.Stat(testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest))
 		require.NoError(t, err)
 
-		dirs, err := gc.collectUnusedImageDirs(ctx, []os.FileInfo{fileInfo})
+		dirs, err := gc.collectUnusedAgentBins(ctx, []os.FileInfo{fileInfo})
 		require.NoError(t, err)
 		assert.Len(t, dirs, 0)
 	})
@@ -180,14 +180,14 @@ func TestGetUsedImageDigests(t *testing.T) {
 			db:   &metadata.FakeFailDB{},
 			path: testPathResolver,
 		}
-		_, err := gc.getUsedImageDigests(ctx)
+		_, err := gc.getUsedAgentBins(ctx)
 		require.Error(t, err)
 	})
 	t.Run("no error on db", func(t *testing.T) {
 		gc := CSIGarbageCollector{
 			db: metadata.FakeMemoryDB(),
 		}
-		usedDigests, err := gc.getUsedImageDigests(ctx)
+		usedDigests, err := gc.getUsedAgentBins(ctx)
 		require.NoError(t, err)
 		assert.Empty(t, usedDigests)
 	})
@@ -204,7 +204,7 @@ func TestGetUsedImageDigests(t *testing.T) {
 			ImageDigest:   testImageDigest,
 		})
 
-		usedDigests, err := gc.getUsedImageDigests(ctx)
+		usedDigests, err := gc.getUsedAgentBins(ctx)
 		require.NoError(t, err)
 		assert.True(t, usedDigests[testImageDigest])
 	})
@@ -221,7 +221,7 @@ func TestGetUsedImageDigests(t *testing.T) {
 			PodName:    "test",
 		})
 
-		usedDigests, err := gc.getUsedImageDigests(ctx)
+		usedDigests, err := gc.getUsedAgentBins(ctx)
 		require.NoError(t, err)
 		assert.True(t, usedDigests[testImageDigest])
 	})
@@ -230,7 +230,7 @@ func TestGetUsedImageDigests(t *testing.T) {
 func TestDeleteImageDirs(t *testing.T) {
 	t.Run("deletes, no panic/error", func(t *testing.T) {
 		fs := createTestSharedImageDir(t)
-		testDir := testPathResolver.AgentSharedBinaryDirForImage(testImageDigest)
+		testDir := testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest)
 		err := deleteImageDirs(fs, []string{testDir})
 		require.NoError(t, err)
 		_, err = fs.Stat(testDir)
@@ -238,7 +238,7 @@ func TestDeleteImageDirs(t *testing.T) {
 	})
 	t.Run("not exists, no panic/error", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
-		testDir := testPathResolver.AgentSharedBinaryDirForImage(testImageDigest)
+		testDir := testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest)
 		err := deleteImageDirs(fs, []string{testDir})
 		require.NoError(t, err)
 	})
@@ -246,6 +246,6 @@ func TestDeleteImageDirs(t *testing.T) {
 
 func createTestSharedImageDir(t *testing.T) afero.Fs {
 	fs := afero.NewMemMapFs()
-	require.NoError(t, fs.MkdirAll(testPathResolver.AgentSharedBinaryDirForImage(testImageDigest), 0755))
+	require.NoError(t, fs.MkdirAll(testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest), 0755))
 	return fs
 }

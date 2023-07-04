@@ -50,7 +50,7 @@ func (pr PathResolver) AgentTempUnzipDir() string {
 	return filepath.Join(pr.AgentTempUnzipRootDir(), "opt", "dynatrace", "oneagent")
 }
 
-func (pr PathResolver) AgentSharedBinaryDirForImage(digest string) string {
+func (pr PathResolver) AgentSharedBinaryDirForAgent(digest string) string {
 	return filepath.Join(pr.AgentSharedBinaryDirBase(), digest)
 }
 

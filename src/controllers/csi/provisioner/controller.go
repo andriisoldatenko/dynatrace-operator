@@ -29,7 +29,6 @@ import (
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/dynakube/dynatraceclient"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/dynakube/token"
 	"github.com/Dynatrace/dynatrace-operator/src/dtclient"
-	"github.com/Dynatrace/dynatrace-operator/src/installer/image"
 	"github.com/Dynatrace/dynatrace-operator/src/kubeobjects"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -192,35 +191,26 @@ func (provisioner *OneAgentProvisioner) updateAgentInstallation(ctx context.Cont
 		AddConnectionInfo(dk.Status.OneAgent.ConnectionInfoStatus, tenantToken).
 		AddTenantUUID(dynakubeMetadata.TenantUUID)
 
-	var agentUpdater *agentUpdater
-	if dk.CodeModulesImage() != "" {
-		agentUpdater, err = newAgentImageUpdater(ctx, provisioner.fs, provisioner.apiReader, provisioner.path, provisioner.db, provisioner.recorder, dk)
-		if err != nil {
-			log.Error(err, "error when setting up the agent image updater")
-			return nil, false, err
-		}
-	} else {
-		agentUpdater, err = newAgentUrlUpdater(provisioner.fs, dtc, dynakubeMetadata.LatestVersion, provisioner.path, provisioner.recorder, dk)
-		if err != nil {
-			log.Info("error when setting up the agent url updater", "error", err.Error())
-			return nil, false, err
-		}
-	}
-
 	latestProcessModuleConfigCache = newProcessModuleConfigCache(latestProcessModuleConfig)
 
-	updatedVersion, err := agentUpdater.updateAgent(latestProcessModuleConfigCache)
-	if err != nil {
-		log.Info("error when updating agent", "error", err.Error())
-		// reporting error but not returning it to avoid immediate requeue and subsequently calling the API every few seconds
-		return nil, true, nil
-	} else if updatedVersion != "" {
-		imageInstaller, isImageInstaller := agentUpdater.installer.(*image.Installer)
-		if isImageInstaller {
+	if dk.CodeModulesImage() != "" {
+		updatedDigest, err := provisioner.installAgentImage(ctx, *dk, latestProcessModuleConfigCache)
+		if err != nil {
+			log.Info("error when updating agent from image", "error", err.Error())
+			// reporting error but not returning it to avoid immediate requeue and subsequently calling the API every few seconds
+			return nil, true, nil
+		} else if updatedDigest != "" {
 			dynakubeMetadata.LatestVersion = ""
-			dynakubeMetadata.ImageDigest = imageInstaller.ImageDigest()
-		} else {
-			dynakubeMetadata.LatestVersion = updatedVersion
+			dynakubeMetadata.ImageDigest = updatedDigest
+		}
+	} else {
+		updateVersion, err := provisioner.installAgentZip(ctx, *dk, dtc, latestProcessModuleConfigCache)
+		if err != nil {
+			log.Info("error when updating agent from zip", "error", err.Error())
+			// reporting error but not returning it to avoid immediate requeue and subsequently calling the API every few seconds
+			return nil, true, nil
+		} else if updateVersion != "" {
+			dynakubeMetadata.LatestVersion = updateVersion
 			dynakubeMetadata.ImageDigest = ""
 		}
 	}

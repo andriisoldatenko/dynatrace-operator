@@ -11,6 +11,7 @@ import (
 	"github.com/Dynatrace/dynatrace-operator/src/dtclient"
 	"github.com/Dynatrace/dynatrace-operator/src/installer"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/url"
+	"github.com/Dynatrace/dynatrace-operator/src/processmoduleconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
@@ -48,7 +49,7 @@ func NewRunner(fs afero.Fs) (*Runner, error) {
 		if env.InstallVersion != "" {
 			targetVersion = env.InstallVersion
 		}
-		oneAgentInstaller = url.NewInstaller(
+		oneAgentInstaller = url.NewUrlInstaller(
 			fs,
 			client,
 			&url.Properties{
@@ -128,7 +129,8 @@ func (runner *Runner) installOneAgent() error {
 	if err != nil {
 		return err
 	}
-	if err := runner.installer.UpdateProcessModuleConfig(config.AgentBinDirMount, processModuleConfig); err != nil {
+	err = processmoduleconfig.UpdateProcessModuleConfigInPlace(runner.fs, config.AgentBinDirMount, processModuleConfig)
+	if err != nil {
 		return err
 	}
 	return nil
