@@ -142,9 +142,9 @@ func (publisher *AppVolumePublisher) fireVolumeUnpublishedMetric(volume metadata
 func (publisher *AppVolumePublisher) buildLowerDir(bindCfg *csivolumes.BindConfig) string {
 	var binFolderName string
 	if bindCfg.ImageDigest == "" {
-		binFolderName = bindCfg.ImageDigest
-	} else {
 		binFolderName = bindCfg.Version
+	} else {
+		binFolderName = bindCfg.ImageDigest
 	}
 	directories := []string{
 		publisher.path.AgentConfigDir(bindCfg.TenantUUID),
