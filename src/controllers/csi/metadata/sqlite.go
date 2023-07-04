@@ -159,6 +159,12 @@ const (
 	WHERE ImageDigest != "";
 	`
 
+	getLatestVersionsStatement = `
+	SELECT DISTINCT LatestVersion
+	FROM dynakubes;
+	`
+
+
 	getPodNamesStatement = `
 	SELECT ID, PodName
 	FROM volumes;
@@ -527,6 +533,28 @@ func (access *SqliteAccess) GetAllUsedVersions(ctx context.Context) (map[string]
 	}
 	return versions, nil
 }
+
+// GetLatestVersions gets all UNIQUE latestVersions present in the `dynakubes` database in map.
+// Map is used to make sure we don't return the same version multiple time,
+// it's also easier to check if a version is in it or not. (a Set in style of Golang)
+func (access *SqliteAccess) GetLatestVersions(ctx context.Context) (map[string]bool, error) {
+	rows, err := access.conn.QueryContext(ctx, getLatestVersionsStatement)
+	if err != nil {
+		return nil, errors.WithStack(errors.WithMessage(err, "couldn't get all the latests version info for tenant uuid"))
+	}
+	versions := map[string]bool{}
+	defer func() { _ = rows.Close() }()
+	for rows.Next() {
+		var version string
+		err := rows.Scan(&version)
+		if err != nil {
+			return nil, errors.WithStack(errors.WithMessage(err, "couldn't scan latest version info "))
+		}
+		versions[version] = true
+	}
+	return versions, nil
+}
+
 
 // GetUsedImageDigests gets all UNIQUE image digests present in the `dynakubes` database in a map.
 // Map is used to make sure we don't return the same digest multiple time,

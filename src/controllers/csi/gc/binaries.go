@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func (gc *CSIGarbageCollector) runBinaryGarbageCollection(ctx context.Context, pinnedVersions pinnedVersionSet, tenantUUID string) {
+func (gc *CSIGarbageCollector) runBinaryGarbageCollection(ctx context.Context, tenantUUID string) {
 	fs := &afero.Afero{Fs: gc.fs}
 	gcRunsMetric.Inc()
 
@@ -17,17 +17,17 @@ func (gc *CSIGarbageCollector) runBinaryGarbageCollection(ctx context.Context, p
 		log.Info("failed to get used versions", "error", err)
 		return
 	}
-	log.Info("got all used versions", "tenantUUID", tenantUUID, "len(usedVersions)", len(usedVersions))
+	log.Info("got all used versions (in deprecated location)", "tenantUUID", tenantUUID, "len(usedVersions)", len(usedVersions))
 
 	storedVersions, err := gc.getStoredVersions(fs, tenantUUID)
 	if err != nil {
 		log.Info("failed to get stored versions", "error", err)
 		return
 	}
-	log.Info("got all stored versions", "tenantUUID", tenantUUID, "len(storedVersions)", len(storedVersions))
+	log.Info("got all stored versions (in deprecated location)", "tenantUUID", tenantUUID, "len(storedVersions)", len(storedVersions))
 
 	for _, version := range storedVersions {
-		shouldDelete := shouldDeleteVersion(version, usedVersions) && pinnedVersions.isNotPinned(version)
+		shouldDelete := shouldDeleteVersion(version, usedVersions)
 		if !shouldDelete {
 			log.Info("skipped, version should not be deleted", "version", version)
 			continue
