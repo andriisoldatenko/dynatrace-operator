@@ -101,7 +101,7 @@ func (builder CommandBuilder) Build() *cobra.Command {
 func addFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&nodeId, "node-id", "", "node id")
 	cmd.PersistentFlags().StringVar(&endpoint, "endpoint", "unix:///tmp/csi.sock", "CSI endpoint")
-	cmd.PersistentFlags().StringVar(&probeAddress, "health-probe-bind-address", ":10080", "The address the probe endpoint binds to.")
+	cmd.PersistentFlags().StringVar(&probeAddress, "health-probe-bind-address", defaultProbeAddress, "The address the probe endpoint binds to.")
 }
 
 func (builder CommandBuilder) buildRun() func(*cobra.Command, []string) error {
@@ -130,7 +130,7 @@ func (builder CommandBuilder) buildRun() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		err = metadata.CorrectMetadata(signalHandler, csiManager.GetClient(), access)
+		err = metadata.NewCorrectnessChecker(csiManager.GetClient(), access, builder.getCsiOptions()).CorrectCSI(signalHandler)
 		if err != nil {
 			return err
 		}

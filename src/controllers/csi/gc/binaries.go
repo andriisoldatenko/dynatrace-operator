@@ -26,8 +26,14 @@ func (gc *CSIGarbageCollector) runBinaryGarbageCollection(ctx context.Context, t
 	}
 	log.Info("got all stored versions (in deprecated location)", "tenantUUID", tenantUUID, "len(storedVersions)", len(storedVersions))
 
+	setAgentBins, err := gc.db.GetLatestVersions(ctx)
+	if err != nil {
+		log.Error(err, "failed to get the set image digests")
+	}
+
 	for _, version := range storedVersions {
-		shouldDelete := shouldDeleteVersion(version, usedVersions)
+		_, isPinnedVersion := setAgentBins[version]
+		shouldDelete := shouldDeleteVersion(version, usedVersions) && isPinnedVersion
 		if !shouldDelete {
 			log.Info("skipped, version should not be deleted", "version", version)
 			continue
