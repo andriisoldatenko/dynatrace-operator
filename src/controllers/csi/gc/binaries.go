@@ -33,7 +33,7 @@ func (gc *CSIGarbageCollector) runBinaryGarbageCollection(ctx context.Context, t
 
 	for _, version := range storedVersions {
 		_, isPinnedVersion := setAgentBins[version]
-		shouldDelete := shouldDeleteVersion(version, usedVersions) && isPinnedVersion
+		shouldDelete := shouldDeleteVersion(version, usedVersions) && !isPinnedVersion
 		if !shouldDelete {
 			log.Info("skipped, version should not be deleted", "version", version)
 			continue
