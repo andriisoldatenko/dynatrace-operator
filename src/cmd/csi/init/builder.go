@@ -1,59 +1,80 @@
 package init
 
 import (
-	"fmt"
-	"net"
-	"time"
-
-	"github.com/go-logr/logr"
+	"github.com/Dynatrace/dynatrace-operator/src/cmd/config"
+	cmdManager "github.com/Dynatrace/dynatrace-operator/src/cmd/manager"
+	dtcsi "github.com/Dynatrace/dynatrace-operator/src/controllers/csi"
+	"github.com/Dynatrace/dynatrace-operator/src/controllers/csi/metadata"
+	"github.com/Dynatrace/dynatrace-operator/src/version"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
+	"golang.org/x/sys/unix"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 const use = "csi-init"
 
+var (
+	nodeId   = ""
+	endpoint = ""
+)
+
 type CommandBuilder struct {
+	configProvider  config.Provider
+	managerProvider cmdManager.Provider
+	namespace       string
+	filesystem      afero.Fs
+	csiOptions      *dtcsi.CSIOptions
 }
 
-type CsiInit struct{}
-
-func (init *CsiInit) Init(_ logr.RuntimeInfo) {}
-
-func (init *CsiInit) Enabled(_ int) bool {
-	return true
-}
-
-func (init *CsiInit) Info(_ int, msg string, keysAndValues ...interface{}) {
-	fmt.Print(msg, keysAndValues)
-}
-
-func (init *CsiInit) Error(err error, msg string, keysAndValues ...interface{}) {
-	fmt.Print(err, msg, keysAndValues)
-}
-
-func (init *CsiInit) WithValues(keysAndValues ...interface{}) logr.LogSink {
-	return &CsiInit{}
-}
-
-func (init *CsiInit) WithName(name string) logr.LogSink {
-	return &CsiInit{}
-}
-
-func NewCommandBuilder() CommandBuilder {
+func NewCsiInitCommandBuilder() CommandBuilder {
 	return CommandBuilder{}
+}
+
+func (builder CommandBuilder) SetConfigProvider(provider config.Provider) CommandBuilder {
+	builder.configProvider = provider
+	return builder
+}
+
+func (builder CommandBuilder) SetNamespace(namespace string) CommandBuilder {
+	builder.namespace = namespace
+	return builder
+}
+
+func (builder CommandBuilder) getCsiOptions() dtcsi.CSIOptions {
+	if builder.csiOptions == nil {
+		builder.csiOptions = &dtcsi.CSIOptions{
+			NodeId:   nodeId,
+			Endpoint: endpoint,
+			RootDir:  dtcsi.DataPath,
+		}
+	}
+
+	return *builder.csiOptions
+}
+
+func (builder CommandBuilder) getManagerProvider() cmdManager.Provider {
+	if builder.managerProvider == nil {
+		builder.managerProvider = newCsiInitManagerProvider()
+	}
+
+	return builder.managerProvider
+}
+
+func (builder CommandBuilder) getFilesystem() afero.Fs {
+	if builder.filesystem == nil {
+		builder.filesystem = afero.NewOsFs()
+	}
+
+	return builder.filesystem
 }
 
 func (builder CommandBuilder) Build() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  use,
-		Long: "makes the bed for the csi-driver",
 		RunE: builder.buildRun(),
 	}
-
-	cmd.SilenceUsage = true
-	cmd.SilenceErrors = true
 
 	return cmd
 }
@@ -88,8 +109,10 @@ func (builder CommandBuilder) buildRun() func(*cobra.Command, []string) error {
 		if err != nil {
 			return err
 		}
-
-		err = csiManager.Start(signalHandler)
-		return errors.WithStack(err)
+		return nil
 	}
+}
+
+func createCsiDataPath(fs afero.Fs) error {
+	return errors.WithStack(fs.MkdirAll(dtcsi.DataPath, 0770))
 }

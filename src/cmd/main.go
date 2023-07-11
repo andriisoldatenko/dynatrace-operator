@@ -18,6 +18,7 @@ import (
 	"os"
 
 	cmdConfig "github.com/Dynatrace/dynatrace-operator/src/cmd/config"
+	csiInit "github.com/Dynatrace/dynatrace-operator/src/cmd/csi/init"
 	csiProvisioner "github.com/Dynatrace/dynatrace-operator/src/cmd/csi/provisioner"
 	csiServer "github.com/Dynatrace/dynatrace-operator/src/cmd/csi/server"
 	"github.com/Dynatrace/dynatrace-operator/src/cmd/operator"
@@ -64,6 +65,12 @@ func createCsiServerCommandBuilder() csiServer.CommandBuilder {
 		SetConfigProvider(cmdConfig.NewKubeConfigProvider())
 }
 
+func createCsiInitCommandBuilder() csiInit.CommandBuilder {
+	return csiInit.NewCsiInitCommandBuilder().
+		SetNamespace(os.Getenv(kubeobjects.EnvPodNamespace)).
+		SetConfigProvider(cmdConfig.NewKubeConfigProvider())
+}
+
 func createCsiProvisionerCommandBuilder() csiProvisioner.CommandBuilder {
 	return csiProvisioner.NewCsiProvisionerCommandBuilder().
 		SetNamespace(os.Getenv(kubeobjects.EnvPodNamespace)).
@@ -96,6 +103,7 @@ func main() {
 		standalone.NewStandaloneCommand(),
 		createTroubleshootCommandBuilder().Build(),
 		createSupportArchiveCommandBuilder().Build(),
+		createCsiInitCommandBuilder().Build(),
 	)
 
 	err := cmd.Execute()
