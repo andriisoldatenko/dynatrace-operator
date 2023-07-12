@@ -30,14 +30,14 @@ func TestRunSharedImagesGarbageCollection(t *testing.T) {
 			db:   &metadata.FakeFailDB{},
 			path: testPathResolver,
 		}
-		err := gc.runSharedImagesGarbageCollection(ctx)
+		err := gc.runSharedBinaryGarbageCollection(ctx)
 		require.Error(t, err)
 	})
 	t.Run("no error on empty fs", func(t *testing.T) {
 		gc := CSIGarbageCollector{
 			fs: afero.NewMemMapFs(),
 		}
-		err := gc.runSharedImagesGarbageCollection(ctx)
+		err := gc.runSharedBinaryGarbageCollection(ctx)
 		require.NoError(t, err)
 	})
 	t.Run("deletes unused", func(t *testing.T) {
@@ -47,7 +47,7 @@ func TestRunSharedImagesGarbageCollection(t *testing.T) {
 			db:   metadata.FakeMemoryDB(),
 			path: testPathResolver,
 		}
-		err := gc.runSharedImagesGarbageCollection(ctx)
+		err := gc.runSharedBinaryGarbageCollection(ctx)
 		require.NoError(t, err)
 		_, err = fs.Stat(gc.path.AgentSharedBinaryDirForAgent(testImageDigest))
 		require.Error(t, err)
@@ -66,7 +66,7 @@ func TestRunSharedImagesGarbageCollection(t *testing.T) {
 			ImageDigest:   testImageDigest,
 		})
 
-		err := gc.runSharedImagesGarbageCollection(ctx)
+		err := gc.runSharedBinaryGarbageCollection(ctx)
 		require.NoError(t, err)
 
 		_, err = fs.Stat(testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest))
@@ -85,7 +85,7 @@ func TestRunSharedImagesGarbageCollection(t *testing.T) {
 			PodName:    "test",
 		})
 
-		err := gc.runSharedImagesGarbageCollection(ctx)
+		err := gc.runSharedBinaryGarbageCollection(ctx)
 		require.NoError(t, err)
 
 		_, err = fs.Stat(testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest))
@@ -100,7 +100,7 @@ func TestGetSharedImageDirs(t *testing.T) {
 			fs:   fs,
 			path: testPathResolver,
 		}
-		dirs, err := gc.getSharedImageDirs()
+		dirs, err := gc.getSharedBinDirs()
 		require.NoError(t, err)
 		assert.Nil(t, dirs)
 	})
@@ -110,7 +110,7 @@ func TestGetSharedImageDirs(t *testing.T) {
 			fs:   fs,
 			path: testPathResolver,
 		}
-		dirs, err := gc.getSharedImageDirs()
+		dirs, err := gc.getSharedBinDirs()
 		require.NoError(t, err)
 		assert.Len(t, dirs, 1)
 	})
@@ -231,7 +231,7 @@ func TestDeleteImageDirs(t *testing.T) {
 	t.Run("deletes, no panic/error", func(t *testing.T) {
 		fs := createTestSharedImageDir(t)
 		testDir := testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest)
-		err := deleteImageDirs(fs, []string{testDir})
+		err := deleteSharedBinDirs(fs, []string{testDir})
 		require.NoError(t, err)
 		_, err = fs.Stat(testDir)
 		assert.True(t, os.IsNotExist(err))
@@ -239,7 +239,7 @@ func TestDeleteImageDirs(t *testing.T) {
 	t.Run("not exists, no panic/error", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		testDir := testPathResolver.AgentSharedBinaryDirForAgent(testImageDigest)
-		err := deleteImageDirs(fs, []string{testDir})
+		err := deleteSharedBinDirs(fs, []string{testDir})
 		require.NoError(t, err)
 	})
 }

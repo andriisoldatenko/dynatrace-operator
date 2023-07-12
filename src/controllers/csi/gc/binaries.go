@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func (gc *CSIGarbageCollector) runBinaryGarbageCollection(ctx context.Context, tenantUUID string) {
+func (gc *CSIGarbageCollector)runBinaryGarbageCollection(ctx context.Context, tenantUUID string) {
 	fs := &afero.Afero{Fs: gc.fs}
 	gcRunsMetric.Inc()
 
@@ -39,7 +39,7 @@ func (gc *CSIGarbageCollector) runBinaryGarbageCollection(ctx context.Context, t
 			continue
 		}
 		binaryPath := gc.path.AgentBinaryDirForVersion(tenantUUID, version)
-		log.Info("deleting unused version", "version", version, "path", binaryPath)
+		log.Info("deleting unused version (in deprecated location)", "version", version, "path", binaryPath)
 		removeUnusedVersion(fs, binaryPath)
 	}
 }

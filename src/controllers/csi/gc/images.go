@@ -8,13 +8,13 @@ import (
 	"github.com/spf13/afero"
 )
 
-func (gc *CSIGarbageCollector) runSharedImagesGarbageCollection(ctx context.Context) error {
-	imageDirs, err := gc.getSharedImageDirs()
+func (gc *CSIGarbageCollector) runSharedBinaryGarbageCollection(ctx context.Context) error {
+	imageDirs, err := gc.getSharedBinDirs()
 	if err != nil {
 		return err
 	}
 	if len(imageDirs) == 0 {
-		log.Info("no shared image dirs on node")
+		log.Info("no shared binary dirs on node")
 		return nil
 	}
 
@@ -23,14 +23,14 @@ func (gc *CSIGarbageCollector) runSharedImagesGarbageCollection(ctx context.Cont
 		return err
 	}
 	if len(binsToDelete) == 0 {
-		log.Info("no shared image dirs to delete on the node")
+		log.Info("no shared binary dirs to delete on the node")
 		return nil
 	}
 
-	return deleteImageDirs(gc.fs, binsToDelete)
+	return deleteSharedBinDirs(gc.fs, binsToDelete)
 }
 
-func (gc *CSIGarbageCollector) getSharedImageDirs() ([]os.FileInfo, error) {
+func (gc *CSIGarbageCollector) getSharedBinDirs() ([]os.FileInfo, error) {
 	imageDirs, err := afero.Afero{Fs: gc.fs}.ReadDir(gc.path.AgentSharedBinaryDirBase())
 	if os.IsNotExist(err) {
 		return nil, nil
@@ -59,7 +59,7 @@ func (gc *CSIGarbageCollector) collectUnusedAgentBins(ctx context.Context, image
 			continue
 		}
 		agentBin := imageDir.Name()
-		if !usedAgentBins[agentBin] && !setAgentBins[agentBin]{
+		if !usedAgentBins[agentBin] && !setAgentBins[agentBin] {
 			toDelete = append(toDelete, gc.path.AgentSharedBinaryDirForAgent(agentBin))
 		}
 	}
@@ -78,7 +78,7 @@ func (gc *CSIGarbageCollector) getUsedAgentBins(ctx context.Context) (map[string
 	return usedVersions, nil
 }
 
-func deleteImageDirs(fs afero.Fs, imageDirs []string) error {
+func deleteSharedBinDirs(fs afero.Fs, imageDirs []string) error {
 	for _, dir := range imageDirs {
 		log.Info("deleting shared image dir", "dir", dir)
 		err := fs.RemoveAll(dir)
