@@ -567,7 +567,7 @@ func TestReconcile_ActivegateConfigMap(t *testing.T) {
 		sampleKubeSystemNS)
 
 	t.Run(`create OneAgent connection info ConfigMap`, func(t *testing.T) {
-		reconciler := NewOneAgentReconciler(fakeClient, fakeClient, scheme.Scheme, "")
+		reconciler := NewOneAgentReconciler(fakeClient, fakeClient, scheme.Scheme, "", dynakube)
 
 		err := reconciler.Reconcile(context.TODO(), dynakube)
 		require.NoError(t, err)
