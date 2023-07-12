@@ -88,6 +88,13 @@ func addCurlOptionsVolumeMount(container *corev1.Container) {
 	})
 }
 
+func addHttpProxyVolumeMount(container *corev1.Container) {
+	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+		Name:      config.InternalProxySecretVolumeName,
+		MountPath: filepath.Join(config.InternalProxySecretHostMountPath, config.AgentInitSecretName),
+	})
+}
+
 func addInjectionConfigVolume(pod *corev1.Pod) {
 	pod.Spec.Volumes = append(pod.Spec.Volumes,
 		corev1.Volume{

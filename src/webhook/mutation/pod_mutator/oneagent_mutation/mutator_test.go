@@ -120,9 +120,9 @@ func TestMutate(t *testing.T) {
 		{
 			name:                                   "everything turned on, should mutate the pod and init container in the request",
 			dynakube:                               *getTestComplexDynakube(),
-			expectedAdditionalEnvCount:             6, // 1 proxy + 1 deployment-metadata + 1 network-zone + 1 preload + 2 version-detection
+			expectedAdditionalEnvCount:             5, // 1 deployment-metadata + 1 network-zone + 1 preload + 2 version-detection
 			expectedAdditionalVolumeCount:          3, // bin, share, injection-config
-			expectedAdditionalVolumeMountCount:     5, // 3 oneagent mounts(preload,bin,conf) + 1 cert mount + 1 curl-options
+			expectedAdditionalVolumeMountCount:     6, // 3 oneagent mounts(preload,bin,conf) + 1 cert mount + 1 curl-options + 1 proxy
 			expectedAdditionalInitVolumeMountCount: 3, // bin, share, injection-config
 		},
 		{
@@ -183,8 +183,8 @@ func TestReinvoke(t *testing.T) {
 		{
 			name:                               "everything turned on, should mutate the pod and init container in the request",
 			dynakube:                           *getTestComplexDynakube(),
-			expectedAdditionalEnvCount:         6, // 1 proxy + 1 deployment-metadata + 1 network-zone + 1 preload + 2 version-detection
-			expectedAdditionalVolumeMountCount: 5, // 3 oneagent mounts(preload,bin,conf) + 1 cert mount + 1 curl-options
+			expectedAdditionalEnvCount:         5, // 1 deployment-metadata + 1 network-zone + 1 preload + 2 version-detection
+			expectedAdditionalVolumeMountCount: 6, // 3 oneagent mounts(preload,bin,conf) + 1 cert mount + 1 curl-options + 1 http-proxy
 		},
 		{
 			name:                               "basic + readonly-csi, should mutate the pod and init container in the request",

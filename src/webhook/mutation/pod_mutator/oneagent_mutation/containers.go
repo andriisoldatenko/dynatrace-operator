@@ -76,7 +76,7 @@ func (mutator *OneAgentPodMutator) addOneAgentToContainer(request *dtwebhook.Rei
 	}
 
 	if dynakube.NeedsOneAgentProxy() {
-		addProxyEnv(container)
+		addHttpProxyVolumeMount(container)
 	}
 
 	if dynakube.Spec.NetworkZone != "" {
