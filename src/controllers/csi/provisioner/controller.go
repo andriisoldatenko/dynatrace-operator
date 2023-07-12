@@ -29,6 +29,9 @@ import (
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/dynakube/dynatraceclient"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/dynakube/token"
 	"github.com/Dynatrace/dynatrace-operator/src/dtclient"
+	"github.com/Dynatrace/dynatrace-operator/src/installer"
+	"github.com/Dynatrace/dynatrace-operator/src/installer/image"
+	"github.com/Dynatrace/dynatrace-operator/src/installer/url"
 	"github.com/Dynatrace/dynatrace-operator/src/kubeobjects"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -47,17 +50,23 @@ const (
 	longRequeueDuration    = 30 * time.Minute
 )
 
+type urlInstallerBuilder func(afero.Fs, dtclient.Client, *url.Properties) installer.Installer
+type imageInstallerBuilder func(afero.Fs, *image.Properties) installer.Installer
+
 // OneAgentProvisioner reconciles a DynaKube object
 type OneAgentProvisioner struct {
-	client                 client.Client
-	apiReader              client.Reader
+	client    client.Client
+	apiReader client.Reader
+	opts      dtcsi.CSIOptions
+	fs        afero.Fs
+	recorder  record.EventRecorder
+	db        metadata.Access
+	path      metadata.PathResolver
+	gc        reconcile.Reconciler
+
 	dynatraceClientBuilder dynatraceclient.Builder
-	opts                   dtcsi.CSIOptions
-	fs                     afero.Fs
-	recorder               record.EventRecorder
-	db                     metadata.Access
-	path                   metadata.PathResolver
-	gc                     reconcile.Reconciler
+	urlInstallerBuilder    urlInstallerBuilder
+	imageInstallerBuilder  imageInstallerBuilder
 }
 
 // NewOneAgentProvisioner returns a new OneAgentProvisioner
@@ -66,12 +75,14 @@ func NewOneAgentProvisioner(mgr manager.Manager, opts dtcsi.CSIOptions, db metad
 		client:                 mgr.GetClient(),
 		apiReader:              mgr.GetAPIReader(),
 		opts:                   opts,
-		dynatraceClientBuilder: dynatraceclient.NewBuilder(mgr.GetAPIReader()),
 		fs:                     afero.NewOsFs(),
 		recorder:               mgr.GetEventRecorderFor("OneAgentProvisioner"),
 		db:                     db,
 		path:                   metadata.PathResolver{RootDir: opts.RootDir},
 		gc:                     csigc.NewCSIGarbageCollector(mgr.GetAPIReader(), opts, db),
+		dynatraceClientBuilder: dynatraceclient.NewBuilder(mgr.GetAPIReader()),
+		urlInstallerBuilder:    url.NewUrlInstaller,
+		imageInstallerBuilder:  image.NewImageInstaller,
 	}
 }
 

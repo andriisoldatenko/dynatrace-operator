@@ -7,6 +7,7 @@ import (
 	"github.com/Dynatrace/dynatrace-operator/src/config"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/csi/metadata"
 	"github.com/Dynatrace/dynatrace-operator/src/dtclient"
+	"github.com/Dynatrace/dynatrace-operator/src/installer"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/common"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/symlink"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/zip"
@@ -39,7 +40,7 @@ type Installer struct {
 	props     *Properties
 }
 
-func NewUrlInstaller(fs afero.Fs, dtc dtclient.Client, props *Properties) *Installer {
+func NewUrlInstaller(fs afero.Fs, dtc dtclient.Client, props *Properties) installer.Installer {
 	return &Installer{
 		fs:        fs,
 		dtc:       dtc,

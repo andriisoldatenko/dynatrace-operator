@@ -27,16 +27,23 @@ func (provisioner *OneAgentProvisioner) installAgentImage(ctx context.Context, d
 	}
 
 	targetImage := dynakube.CodeModulesImage()
-	imageInstaller, err := image.NewImageInstaller(provisioner.fs, &image.Properties{
-		ImageUri:     targetImage,
-		PathResolver: provisioner.path,
-		Metadata:     provisioner.db,
-		DockerConfig: *dockerConfig})
+	imageDigest, err := image.GetDigest(targetImage)
 	if err != nil {
 		return "", err
 	}
 
-	targetDir := provisioner.path.AgentSharedBinaryDirForAgent(imageInstaller.ImageDigest())
+	imageInstaller := provisioner.imageInstallerBuilder(provisioner.fs, &image.Properties{
+		ImageUri:     targetImage,
+		PathResolver: provisioner.path,
+		Metadata:     provisioner.db,
+		DockerConfig: *dockerConfig,
+		ImageDigest:  imageDigest,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	targetDir := provisioner.path.AgentSharedBinaryDirForAgent(imageDigest)
 	targetConfigDir := provisioner.path.AgentConfigDir(tenantUUID)
 	err = provisioner.installAgent(imageInstaller, dynakube, targetDir, targetImage, tenantUUID)
 	if err != nil {
@@ -47,7 +54,7 @@ func (provisioner *OneAgentProvisioner) installAgentImage(ctx context.Context, d
 	if err != nil {
 		return "", err
 	}
-	return imageInstaller.ImageDigest(), err
+	return imageDigest, err
 
 }
 

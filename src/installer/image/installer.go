@@ -7,6 +7,7 @@ import (
 
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/csi/metadata"
 	"github.com/Dynatrace/dynatrace-operator/src/dockerconfig"
+	"github.com/Dynatrace/dynatrace-operator/src/installer"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/common"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/symlink"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/zip"
@@ -20,35 +21,33 @@ type Properties struct {
 	DockerConfig dockerconfig.DockerConfig
 	PathResolver metadata.PathResolver
 	Metadata     metadata.Access
+	ImageDigest  string
 }
 
-func NewImageInstaller(fs afero.Fs, props *Properties) (*Installer, error) {
-	ref, err := reference.Parse(props.ImageUri)
+func GetDigest(uri string) (string, error) {
+	ref, err := reference.Parse(uri)
 	if err != nil {
-		return nil, errors.WithMessage(err, fmt.Sprintf("failed to parse image reference to create image installer, received imageUri: %s", props.ImageUri))
+		return "", errors.WithMessage(err, fmt.Sprintf("failed to parse image reference to create image installer, received imageUri: %s", uri))
 	}
 	canonRef, ok := ref.(reference.Canonical)
 	if !ok {
-		return nil, errors.Errorf("unexpected type of image reference provided to image installer, expected reference with digest but received %s", props.ImageUri)
+		return "", errors.Errorf("unexpected type of image reference provided to image installer, expected reference with digest but received %s", uri)
 	}
+	return canonRef.Digest().Encoded(), nil
+}
+
+func NewImageInstaller(fs afero.Fs, props *Properties) installer.Installer {
 	return &Installer{
 		fs:          fs,
 		extractor:   zip.NewOneAgentExtractor(fs, props.PathResolver),
 		props:       props,
-		imageDigest: canonRef.Digest().Encoded(),
-	}, nil
+	}
 }
 
 type Installer struct {
 	fs        afero.Fs
 	extractor zip.Extractor
 	props     *Properties
-
-	imageDigest string
-}
-
-func (installer Installer) ImageDigest() string {
-	return installer.imageDigest
 }
 
 func (installer *Installer) InstallAgent(targetDir string) (bool, error) {
@@ -72,7 +71,6 @@ func (installer *Installer) InstallAgent(targetDir string) (bool, error) {
 		return false, errors.WithStack(err)
 	}
 
-	// sharedDir := installer.props.PathResolver.AgentSharedBinaryDirForImage(installer.ImageDigest())
 	if err := symlink.CreateSymlinkForCurrentVersionIfNotExists(installer.fs, targetDir); err != nil {
 		_ = installer.fs.RemoveAll(targetDir)
 		log.Info("failed to create symlink for agent installation", "err", err)
@@ -99,7 +97,7 @@ func (installer *Installer) installAgentFromImage(targetDir string) error {
 		log.Info("failed to get source information", "image", image)
 		return errors.WithStack(err)
 	}
-	imageCacheDir := getCacheDirPath(installer.ImageDigest())
+	imageCacheDir := getCacheDirPath(installer.props.ImageDigest)
 	destinationCtx, destinationRef, err := getDestinationInfo(imageCacheDir)
 	if err != nil {
 		log.Info("failed to get destination information", "image", image, "imageCacheDir", imageCacheDir)
