@@ -6,25 +6,25 @@ import (
 
 	dynatracev1beta1 "github.com/Dynatrace/dynatrace-operator/src/api/v1beta1"
 	dtcsi "github.com/Dynatrace/dynatrace-operator/src/controllers/csi"
+	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"github.com/pkg/errors"
 )
 
 type CorrectnessChecker struct {
-	cl client.Client
-	fs afero.Fs
-	path PathResolver
+	cl     client.Client
+	fs     afero.Fs
+	path   PathResolver
 	access Access
 }
 
 func NewCorrectnessChecker(cl client.Client, access Access, opts dtcsi.CSIOptions) *CorrectnessChecker {
 	return &CorrectnessChecker{
-		cl: cl,
-		fs: afero.NewOsFs(),
-		path: PathResolver{RootDir: opts.RootDir},
+		cl:     cl,
+		fs:     afero.NewOsFs(),
+		path:   PathResolver{RootDir: opts.RootDir},
 		access: access,
 	}
 }
@@ -107,14 +107,14 @@ func (checker *CorrectnessChecker) copyCodeModulesFromDeprecatedBin(ctx context.
 			return err
 		}
 		if linked {
-			moved = append(moved, dynakube.TenantUUID + "|" + dynakube.LatestVersion)
+			moved = append(moved, dynakube.TenantUUID+"|"+dynakube.LatestVersion)
 		}
 	}
 	log.Info("CSI filesystem corrected, linked deprecated agent binary to current location (tenant|version-bin)", "movedBins", moved)
 	return nil
 }
 
-func(checker *CorrectnessChecker) safelyLinkCodeModule(deprecatedBin, currentBin string) (bool, error) {
+func (checker *CorrectnessChecker) safelyLinkCodeModule(deprecatedBin, currentBin string) (bool, error) {
 	if folderExists(checker.fs, deprecatedBin) && !folderExists(checker.fs, currentBin) {
 		log.Info("linking codemodule from deprecated location", "path", deprecatedBin)
 		// MemMapFs (used for testing) doesn't comply with the Linker interface
@@ -137,7 +137,7 @@ func(checker *CorrectnessChecker) safelyLinkCodeModule(deprecatedBin, currentBin
 func folderExists(fs afero.Fs, filename string) bool {
 	info, err := fs.Stat(filename)
 	if os.IsNotExist(err) {
-	   return false
+		return false
 	}
 	return info.IsDir()
- }
+}

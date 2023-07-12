@@ -8,28 +8,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsAlreadyDownloaded(t *testing.T) {
+func TestIsAlreadyPresent(t *testing.T) {
 	imageDigest := "test"
 	pathResolver := metadata.PathResolver{}
 
-	t.Run(`returns early if path doesn't exist`, func(t *testing.T) {
+	t.Run("returns early if path doesn't exist", func(t *testing.T) {
 		installer := Installer{
 			fs: afero.NewMemMapFs(),
 			props: &Properties{
 				PathResolver: pathResolver,
 			},
 		}
-		isDownloaded := installer.isAlreadyDownloaded(imageDigest)
+		isDownloaded := installer.isAlreadyPresent(pathResolver.AgentSharedBinaryDirForAgent(imageDigest))
 		assert.False(t, isDownloaded)
 	})
-	t.Run(`returns true if path present`, func(t *testing.T) {
+	t.Run("returns true if path present", func(t *testing.T) {
 		installer := Installer{
 			fs: testFileSystemWithSharedDirPresent(pathResolver, imageDigest),
 			props: &Properties{
 				PathResolver: pathResolver,
 			},
 		}
-		isDownloaded := installer.isAlreadyDownloaded(imageDigest)
+		isDownloaded := installer.isAlreadyPresent(pathResolver.AgentSharedBinaryDirForAgent(imageDigest))
 		assert.True(t, isDownloaded)
 	})
 }

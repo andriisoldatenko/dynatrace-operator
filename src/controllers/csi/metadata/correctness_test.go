@@ -4,7 +4,6 @@ import (
 	// "context"
 	"fmt"
 	// "testing"
-
 	// dynatracev1beta1 "github.com/Dynatrace/dynatrace-operator/src/api/v1beta1"
 	// "github.com/Dynatrace/dynatrace-operator/src/scheme/fake"
 	// "github.com/spf13/afero"

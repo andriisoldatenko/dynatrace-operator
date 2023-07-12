@@ -44,14 +44,23 @@ func (gc *CSIGarbageCollector) getSharedBinDirs() ([]os.FileInfo, error) {
 
 func (gc *CSIGarbageCollector) collectUnusedAgentBins(ctx context.Context, imageDirs []os.FileInfo) ([]string, error) {
 	var toDelete []string
-	setAgentBins, err := gc.db.GetLatestVersions(ctx)
+	setAgentVersions, err := gc.db.GetLatestVersions(ctx)
+	if err != nil {
+		log.Info("failed to get the set image versions")
+		return nil, err
+	}
+	setAgentImages, err := gc.db.GetUsedImageDigests(ctx)
 	if err != nil {
 		log.Info("failed to get the set image digests")
 		return nil, err
 	}
-	usedAgentBins, err := gc.getUsedAgentBins(ctx)
+
+	// If a shared image was used during mount, the version of a Volume is the imageDigest.
+	// A Volume can still reference versions that are not imageDigests.
+	// However, this shouldn't cause issues as those versions don't matter in this context.
+	mountedAgentBins, err := gc.db.GetAllUsedVersions(ctx)
 	if err != nil {
-		log.Info("failed to get the used image digests")
+		log.Info("failed to get all mounted versions")
 		return nil, err
 	}
 	for _, imageDir := range imageDirs {
@@ -59,23 +68,11 @@ func (gc *CSIGarbageCollector) collectUnusedAgentBins(ctx context.Context, image
 			continue
 		}
 		agentBin := imageDir.Name()
-		if !usedAgentBins[agentBin] && !setAgentBins[agentBin] {
+		if !mountedAgentBins[agentBin] && !setAgentVersions[agentBin] && !setAgentImages[agentBin] {
 			toDelete = append(toDelete, gc.path.AgentSharedBinaryDirForAgent(agentBin))
 		}
 	}
 	return toDelete, nil
-}
-
-func (gc *CSIGarbageCollector) getUsedAgentBins(ctx context.Context) (map[string]bool, error) {
-	// If a shared image was used during mount, the version of a Volume is the imageDigest.
-	// A Volume can still reference versions that are not imageDigests.
-	// However, this shouldn't cause issues as those versions don't matter in this context.
-	usedVersions, err := gc.db.GetAllUsedVersions(ctx)
-	if err != nil {
-		log.Info("failed to get all used versions")
-		return nil, err
-	}
-	return usedVersions, nil
 }
 
 func deleteSharedBinDirs(fs afero.Fs, imageDirs []string) error {

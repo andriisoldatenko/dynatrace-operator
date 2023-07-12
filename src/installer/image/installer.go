@@ -54,7 +54,7 @@ func (installer Installer) ImageDigest() string {
 func (installer *Installer) InstallAgent(targetDir string) (bool, error) {
 	log.Info("installing agent from image")
 
-	if installer.isAlreadyDownloaded(targetDir) {
+	if installer.isAlreadyPresent(targetDir) {
 		log.Info("agent already installed", "target dir", targetDir)
 		return false, nil
 	}
@@ -123,7 +123,7 @@ func (installer *Installer) installAgentFromImage(targetDir string) error {
 	return nil
 }
 
-func (installer Installer) isAlreadyDownloaded(targetDir string) bool {
+func (installer Installer) isAlreadyPresent(targetDir string) bool {
 	_, err := installer.fs.Stat(targetDir)
 	return !os.IsNotExist(err)
 }

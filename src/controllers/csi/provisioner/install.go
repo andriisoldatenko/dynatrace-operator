@@ -44,7 +44,7 @@ func (provisioner *OneAgentProvisioner) installAgentImage(ctx context.Context, d
 	}
 
 	err = processmoduleconfig.CreateAgentConfigDir(provisioner.fs, targetConfigDir, targetDir, latestProcessModuleConfigCache.ProcessModuleConfig)
-	if  err != nil {
+	if err != nil {
 		return "", err
 	}
 	return imageInstaller.ImageDigest(), err
@@ -67,7 +67,7 @@ func (provisioner *OneAgentProvisioner) installAgentZip(ctx context.Context, dyn
 	}
 
 	err = processmoduleconfig.CreateAgentConfigDir(provisioner.fs, targetConfigDir, targetDir, latestProcessModuleConfigCache.ProcessModuleConfig)
-	if  err != nil {
+	if err != nil {
 		return "", err
 	}
 	return targetVersion, nil
@@ -92,12 +92,12 @@ func (provisioner *OneAgentProvisioner) installAgent(agentInstaller installer.In
 
 func getUrlProperties(targetVersion string, pathResolver metadata.PathResolver) *url.Properties {
 	return &url.Properties{
-		Os:              dtclient.OsUnix,
-		Type:            dtclient.InstallerTypePaaS,
-		Arch:            arch.Arch,
-		Flavor:          arch.Flavor,
-		Technologies:    []string{"all"},
-		TargetVersion:   targetVersion,
-		PathResolver:    pathResolver,
+		Os:            dtclient.OsUnix,
+		Type:          dtclient.InstallerTypePaaS,
+		Arch:          arch.Arch,
+		Flavor:        arch.Flavor,
+		Technologies:  []string{"all"},
+		TargetVersion: targetVersion,
+		PathResolver:  pathResolver,
 	}
 }

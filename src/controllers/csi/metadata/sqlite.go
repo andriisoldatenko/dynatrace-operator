@@ -164,7 +164,6 @@ const (
 	FROM dynakubes;
 	`
 
-
 	getPodNamesStatement = `
 	SELECT ID, PodName
 	FROM volumes;
@@ -554,7 +553,6 @@ func (access *SqliteAccess) GetLatestVersions(ctx context.Context) (map[string]b
 	}
 	return versions, nil
 }
-
 
 // GetUsedImageDigests gets all UNIQUE image digests present in the `dynakubes` database in a map.
 // Map is used to make sure we don't return the same digest multiple time,
