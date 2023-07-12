@@ -2,6 +2,7 @@ package modifiers
 
 import (
 	dynatracev1beta1 "github.com/Dynatrace/dynatrace-operator/src/api/v1beta1"
+	"github.com/Dynatrace/dynatrace-operator/src/config"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/dynakube/activegate/capability"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/dynakube/activegate/consts"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/dynakube/activegate/internal/statefulset/builder"
@@ -38,7 +39,7 @@ func (mod ProxyModifier) Modify(sts *appsv1.StatefulSet) error {
 func (mod ProxyModifier) getVolumes() []corev1.Volume {
 	return []corev1.Volume{
 		{
-			Name: consts.InternalProxySecretVolumeName,
+			Name: config.InternalProxySecretVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: capability.BuildProxySecretName(mod.dynakube.Name),
@@ -52,27 +53,27 @@ func (mod ProxyModifier) getVolumeMounts() []corev1.VolumeMount {
 	return []corev1.VolumeMount{
 		{
 			ReadOnly:  true,
-			Name:      consts.InternalProxySecretVolumeName,
-			MountPath: consts.InternalProxySecretHostMountPath,
-			SubPath:   consts.InternalProxySecretHost,
+			Name:      config.InternalProxySecretVolumeName,
+			MountPath: config.InternalProxySecretHostMountPath,
+			SubPath:   config.InternalProxySecretHost,
 		},
 		{
 			ReadOnly:  true,
-			Name:      consts.InternalProxySecretVolumeName,
-			MountPath: consts.InternalProxySecretPortMountPath,
-			SubPath:   consts.InternalProxySecretPort,
+			Name:      config.InternalProxySecretVolumeName,
+			MountPath: config.InternalProxySecretPortMountPath,
+			SubPath:   config.InternalProxySecretPort,
 		},
 		{
 			ReadOnly:  true,
-			Name:      consts.InternalProxySecretVolumeName,
-			MountPath: consts.InternalProxySecretUsernameMountPath,
-			SubPath:   consts.InternalProxySecretUsername,
+			Name:      config.InternalProxySecretVolumeName,
+			MountPath: config.InternalProxySecretUsernameMountPath,
+			SubPath:   config.InternalProxySecretUsername,
 		},
 		{
 			ReadOnly:  true,
-			Name:      consts.InternalProxySecretVolumeName,
-			MountPath: consts.InternalProxySecretPasswordMountPath,
-			SubPath:   consts.InternalProxySecretPassword,
+			Name:      config.InternalProxySecretVolumeName,
+			MountPath: config.InternalProxySecretPasswordMountPath,
+			SubPath:   config.InternalProxySecretPassword,
 		},
 	}
 }
