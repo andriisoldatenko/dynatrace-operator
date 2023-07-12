@@ -2,7 +2,6 @@ package init
 
 import (
 	"github.com/Dynatrace/dynatrace-operator/src/cmd/config"
-	cmdManager "github.com/Dynatrace/dynatrace-operator/src/cmd/manager"
 	dtcsi "github.com/Dynatrace/dynatrace-operator/src/controllers/csi"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/csi/metadata"
 	"github.com/Dynatrace/dynatrace-operator/src/version"
@@ -22,10 +21,7 @@ var (
 
 type CommandBuilder struct {
 	configProvider  config.Provider
-	managerProvider cmdManager.Provider
 	namespace       string
-	filesystem      afero.Fs
-	csiOptions      *dtcsi.CSIOptions
 }
 
 func NewCsiInitCommandBuilder() CommandBuilder {
@@ -40,34 +36,6 @@ func (builder CommandBuilder) SetConfigProvider(provider config.Provider) Comman
 func (builder CommandBuilder) SetNamespace(namespace string) CommandBuilder {
 	builder.namespace = namespace
 	return builder
-}
-
-func (builder CommandBuilder) getCsiOptions() dtcsi.CSIOptions {
-	if builder.csiOptions == nil {
-		builder.csiOptions = &dtcsi.CSIOptions{
-			NodeId:   nodeId,
-			Endpoint: endpoint,
-			RootDir:  dtcsi.DataPath,
-		}
-	}
-
-	return *builder.csiOptions
-}
-
-func (builder CommandBuilder) getManagerProvider() cmdManager.Provider {
-	if builder.managerProvider == nil {
-		builder.managerProvider = newCsiInitManagerProvider()
-	}
-
-	return builder.managerProvider
-}
-
-func (builder CommandBuilder) getFilesystem() afero.Fs {
-	if builder.filesystem == nil {
-		builder.filesystem = afero.NewOsFs()
-	}
-
-	return builder.filesystem
 }
 
 func (builder CommandBuilder) Build() *cobra.Command {
@@ -89,12 +57,12 @@ func (builder CommandBuilder) buildRun() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		csiManager, err := builder.getManagerProvider().CreateManager(builder.namespace, kubeConfig)
+		csiManager, err := createManager(builder.namespace, kubeConfig)
 		if err != nil {
 			return err
 		}
 
-		err = createCsiDataPath(builder.getFilesystem())
+		err = createCsiDataPath(afero.NewOsFs())
 		if err != nil {
 			return err
 		}
@@ -105,7 +73,13 @@ func (builder CommandBuilder) buildRun() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		err = metadata.NewCorrectnessChecker(csiManager.GetClient(), access, builder.getCsiOptions()).CorrectCSI(signalHandler)
+		csiOptions := dtcsi.CSIOptions{
+			NodeId:   nodeId,
+			Endpoint: endpoint,
+			RootDir:  dtcsi.DataPath,
+		}
+
+		err = metadata.NewCorrectnessChecker(csiManager.GetClient(), access, csiOptions).CorrectCSI(signalHandler)
 		if err != nil {
 			return err
 		}

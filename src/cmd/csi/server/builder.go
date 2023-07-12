@@ -130,11 +130,6 @@ func (builder CommandBuilder) buildRun() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		err = metadata.NewCorrectnessChecker(csiManager.GetClient(), access, builder.getCsiOptions()).CorrectCSI(signalHandler)
-		if err != nil {
-			return err
-		}
-
 		err = csidriver.NewServer(csiManager.GetClient(), builder.getCsiOptions(), access).SetupWithManager(csiManager)
 		if err != nil {
 			return err

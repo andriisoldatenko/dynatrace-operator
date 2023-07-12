@@ -31,6 +31,7 @@ func NewCorrectnessChecker(cl client.Client, access Access, opts dtcsi.CSIOption
 
 // CorrectMetadata checks if the entries in the storage are actually valid
 // Removes not valid entries
+// "Moves" agent bins from deprecated location. (just creates a symlink)
 func (checker *CorrectnessChecker) CorrectCSI(ctx context.Context) error {
 	defer LogAccessOverview(checker.access)
 	if err := checker.removeVolumesForMissingPods(ctx); err != nil {
