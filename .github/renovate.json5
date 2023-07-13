@@ -19,7 +19,7 @@
       "matchStrings": [
         "golangci\\/golangci-lint-action@((.|\\n)*)version\\:\\sv(?<currentValue>.*)"
       ],
-      "depNameTemplate": "golangci-lint",
+      "depName": "github.com/golangci/golangci-lint",
       "datasourceTemplate": "go"
     },
   ],
