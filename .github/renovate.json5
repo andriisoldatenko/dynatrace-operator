@@ -31,13 +31,13 @@
       "matchUpdateTypes": [
         "major",
         "minor",
-        "digest",
-        "pin",
-        "pinDigest",
       ],
       "enabled": false
     },
     {
+      "matchBaseBranches": [
+        "$default",
+      ],
       "matchUpdateTypes": ["digest", "pin", "pinDigest"],
       "enabled": false
     },
