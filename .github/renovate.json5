@@ -35,6 +35,10 @@
       "enabled": false
     },
     {
+      "matchUpdateTypes": ["digest", "pin", "pinDigest"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["dockerfile"],
       "commitMessagePrefix": "Docker:",
       "enabled": true,
