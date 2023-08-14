@@ -5,7 +5,7 @@
   ],
   "labels": ["dependencies"],
   "digest": { "enabled": false },
-  "baseBranches": ["$default", "release-0.11", "release-0.12", "release-0.13"],
+  "baseBranches": ["$default", "release-0.11", "release-0.12"],
   "enabledManagers": [ "regex", "dockerfile", "gomod", "github-actions" ],
   "regexManagers": [
     {
@@ -24,6 +24,16 @@
     }
   ],
   "packageRules": [
+    {
+      "matchBaseBranches": [
+        "/^release\\/.*/"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "enabled": false
+    },
     {
       "matchManagers": ["dockerfile"],
       "commitMessagePrefix": "Docker:",
