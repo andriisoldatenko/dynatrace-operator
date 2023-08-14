@@ -19,7 +19,7 @@ RUN CGO_ENABLED=1 CGO_CFLAGS="-O2 -Wno-return-local-addr" \
     go build -tags "${GO_BUILD_TAGS}" -trimpath -ldflags="${GO_LINKER_ARGS}" \
     -o ./build/_output/bin/dynatrace-operator ./src/cmd/
 
-FROM registry.access.redhat.com/ubi9-micro:9.2@sha256:57ac8525717f02853b992b0fab41752d4120e5d85163acd8ab696c8a94a715b5 AS base
+FROM registry.access.redhat.com/ubi9-micro:9.2@sha256:91b703d7c9030b4da1ac193236cd7283ec004b36a524233b57c1cf72f85aa383 AS base
 FROM registry.access.redhat.com/ubi9:9.2@sha256:089bd3b82a78ac45c0eed231bb58bfb43bfcd0560d9bba240fc6355502c92976 AS dependency
 RUN mkdir -p /tmp/rootfs-dependency
 COPY --from=base / /tmp/rootfs-dependency
