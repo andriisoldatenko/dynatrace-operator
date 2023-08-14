@@ -30,7 +30,10 @@
       ],
       "matchUpdateTypes": [
         "major",
-        "minor"
+        "minor",
+        "digest",
+        "pin",
+        "pinDigest",
       ],
       "enabled": false
     },
