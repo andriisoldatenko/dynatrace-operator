@@ -102,6 +102,7 @@ jobs:
       - name: Create pull request for adding helm index to main branch
         uses: peter-evans/create-pull-request@v5
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           base: main
           delete-branch: true
           add-paths: |
