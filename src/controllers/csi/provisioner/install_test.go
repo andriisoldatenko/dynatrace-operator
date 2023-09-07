@@ -1,17 +1,13 @@
 package csiprovisioner
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"path"
 	"path/filepath"
 	"testing"
 
 	"github.com/Dynatrace/dynatrace-operator/src/api/status"
 	dynatracev1beta1 "github.com/Dynatrace/dynatrace-operator/src/api/v1beta1/dynakube"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/csi/metadata"
-	"github.com/Dynatrace/dynatrace-operator/src/dockerconfig"
 	"github.com/Dynatrace/dynatrace-operator/src/dtclient"
 	"github.com/Dynatrace/dynatrace-operator/src/installer"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/image"
@@ -117,7 +113,7 @@ func TestUpdateAgent(t *testing.T) {
 			Return(nil)
 		provisioner.imageInstallerBuilder = mockImageInstallerBuilder(installerMock)
 
-		currentVersion, err := provisioner.installAgentImage(context.TODO(), dk, &processModuleCache)
+		currentVersion, err := provisioner.installAgentImage(dk, &processModuleCache)
 
 		require.Error(t, err)
 		assert.Equal(t, "", currentVersion)
@@ -145,12 +141,9 @@ func TestUpdateAgent(t *testing.T) {
 			Return(true, nil).Run(mockFsAfterInstall(provisioner, testImageDigest))
 		provisioner.imageInstallerBuilder = mockImageInstallerBuilder(installerMock)
 
-		currentVersion, err := provisioner.installAgentImage(context.TODO(), dk, &processModuleCache)
+		currentVersion, err := provisioner.installAgentImage(dk, &processModuleCache)
 		require.NoError(t, err)
 		assert.Equal(t, testImageDigest, currentVersion)
-
-		dockerJsonPath := path.Join(dockerconfig.TmpPath, dockerconfig.RegistryAuthDir, dk.Name)
-		checkFilesDeleted(t, provisioner.fs, dockerJsonPath)
 	})
 	t.Run("codeModulesImage set with custom pull secret", func(t *testing.T) {
 		pullSecretName := "test-pull-secret"
@@ -169,12 +162,9 @@ func TestUpdateAgent(t *testing.T) {
 			Return(true, nil).Run(mockFsAfterInstall(provisioner, testImageDigest))
 		provisioner.imageInstallerBuilder = mockImageInstallerBuilder(installerMock)
 
-		currentVersion, err := provisioner.installAgentImage(context.TODO(), dk, &processModuleCache)
+		currentVersion, err := provisioner.installAgentImage(dk, &processModuleCache)
 		require.NoError(t, err)
 		assert.Equal(t, testImageDigest, currentVersion)
-
-		dockerJsonPath := path.Join(dockerconfig.TmpPath, dockerconfig.RegistryAuthDir, dk.Name)
-		checkFilesDeleted(t, provisioner.fs, dockerJsonPath)
 	})
 	t.Run("codeModulesImage + trustedCA set", func(t *testing.T) {
 		pullSecretName := "test-pull-secret"
@@ -196,15 +186,9 @@ func TestUpdateAgent(t *testing.T) {
 			Return(true, nil).Run(mockFsAfterInstall(provisioner, testImageDigest))
 		provisioner.imageInstallerBuilder = mockImageInstallerBuilder(installerMock)
 
-		currentVersion, err := provisioner.installAgentImage(context.TODO(), dk, &processModuleCache)
+		currentVersion, err := provisioner.installAgentImage(dk, &processModuleCache)
 		require.NoError(t, err)
 		assert.Equal(t, testImageDigest, currentVersion)
-
-		dockerJsonPath := path.Join(dockerconfig.TmpPath, dockerconfig.RegistryAuthDir, dk.Name)
-		checkFilesDeleted(t, provisioner.fs, dockerJsonPath)
-
-		caFilePath := path.Join(dockerconfig.TmpPath, dockerconfig.CADir, dk.Name, dockerconfig.TrustedCertFileName)
-		checkFilesDeleted(t, provisioner.fs, caFilePath)
 	})
 }
 
@@ -218,15 +202,10 @@ func mockFsAfterInstall(provisioner *OneAgentProvisioner, version string) func(m
 	}
 }
 
-func checkFilesDeleted(t *testing.T, fs afero.Fs, filePath string) {
-	_, err := fs.Stat(filePath)
-	require.Error(t, err, os.ErrNotExist)
-}
-
 func createMockedPullSecret(dynakube dynatracev1beta1.DynaKube, pullSecretContent string) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      dynakube.PullSecret(),
+			Name:      dynakube.PullSecretName(),
 			Namespace: dynakube.Namespace,
 		},
 		Data: map[string][]byte{
@@ -306,8 +285,8 @@ func createTestProvisioner(obj ...client.Object) *OneAgentProvisioner {
 }
 
 func mockImageInstallerBuilder(mock *installer.Mock) imageInstallerBuilder {
-	return func(f afero.Fs, p *image.Properties) installer.Installer {
-		return mock
+	return func(f afero.Fs, p *image.Properties) (installer.Installer, error) {
+		return mock, nil
 	}
 }
 

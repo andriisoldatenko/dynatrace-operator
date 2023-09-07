@@ -1,29 +1,21 @@
 package csiprovisioner
 
 import (
-	"context"
-
 	dynatracev1beta1 "github.com/Dynatrace/dynatrace-operator/src/api/v1beta1/dynakube"
 	"github.com/Dynatrace/dynatrace-operator/src/arch"
 	"github.com/Dynatrace/dynatrace-operator/src/controllers/csi/metadata"
-	"github.com/Dynatrace/dynatrace-operator/src/dockerconfig"
 	"github.com/Dynatrace/dynatrace-operator/src/dtclient"
 	"github.com/Dynatrace/dynatrace-operator/src/installer"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/image"
 	"github.com/Dynatrace/dynatrace-operator/src/installer/url"
 	"github.com/Dynatrace/dynatrace-operator/src/processmoduleconfig"
-	"github.com/spf13/afero"
 )
 
-func (provisioner *OneAgentProvisioner) installAgentImage(ctx context.Context, dynakube dynatracev1beta1.DynaKube, latestProcessModuleConfigCache *processModuleConfigCache) (string, error) {
+func (provisioner *OneAgentProvisioner) installAgentImage(dynakube dynatracev1beta1.DynaKube, latestProcessModuleConfigCache *processModuleConfigCache) (string, error) {
 	tenantUUID, err := dynakube.TenantUUIDFromApiUrl()
 	if err != nil {
 		return "", err
 	}
-	// TODO: remove dockerconfig and use only dockerkeychain
-	dockerConfig := dockerconfig.NewDockerConfig(provisioner.apiReader, dynakube)
-	err = dockerConfig.StoreRequiredFiles(ctx, afero.Afero{Fs: provisioner.fs})
-	defer dockerConfig.Cleanup(afero.Afero{Fs: provisioner.fs})
 
 	if err != nil {
 		return "", err
@@ -35,15 +27,13 @@ func (provisioner *OneAgentProvisioner) installAgentImage(ctx context.Context, d
 		return "", err
 	}
 
-	imageInstaller := provisioner.imageInstallerBuilder(provisioner.fs, &image.Properties{
+	imageInstaller, err := provisioner.imageInstallerBuilder(provisioner.fs, &image.Properties{
 		ImageUri:     targetImage,
 		ApiReader:    provisioner.apiReader,
 		Dynakube:     &dynakube,
 		PathResolver: provisioner.path,
 		Metadata:     provisioner.db,
 		ImageDigest:  imageDigest,
-		// TODO: remove it with dockerConfig
-		RegistryAuthPath: dockerConfig.RegistryAuthPath,
 	})
 	if err != nil {
 		return "", err

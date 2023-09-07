@@ -163,6 +163,10 @@ func (dk *DynaKube) NeedsOneAgentPrivileged() bool {
 	return dk.FeatureOneAgentPrivileged()
 }
 
+func (dk *DynaKube) NeedsOneAgentReadinessProbe() bool {
+	return dk.Status.OneAgent.Healthcheck != nil
+}
+
 // ShouldAutoUpdateOneAgent returns true if the Operator should update OneAgent instances automatically.
 func (dk *DynaKube) ShouldAutoUpdateOneAgent() bool {
 	switch {
@@ -200,12 +204,22 @@ func (dk *DynaKube) OneAgentConnectionInfoConfigMapName() string {
 	return dk.Name + OneAgentConnectionInfoConfigMapSuffix
 }
 
-// PullSecret returns the name of the pull secret to be used for immutable images.
-func (dk *DynaKube) PullSecret() string {
+// PullSecretName returns the name of the pull secret to be used for immutable images.
+func (dk *DynaKube) PullSecretName() string {
 	if dk.Spec.CustomPullSecret != "" {
 		return dk.Spec.CustomPullSecret
 	}
 	return dk.Name + PullSecretSuffix
+}
+
+// PullSecretWithoutData returns a secret which can be used to query the actual secrets data from the cluster
+func (dk *DynaKube) PullSecretWithoutData() corev1.Secret {
+	return corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      dk.PullSecretName(),
+			Namespace: dk.Namespace,
+		},
+	}
 }
 
 func (dk *DynaKube) NeedsReadOnlyOneAgents() bool {
