@@ -26,8 +26,4 @@ helm package \
     "./config/helm/chart/default/" \
     -d "${output_dir}" \
     --app-version "${version_without_prefix}" \
-    --version "${version_without_prefix}" \
-    --sign \
-    --key "Dynatrace LLC" \
-    --keyring ~/.gnupg/secring.gpg \
-    --passphrase-file ~/.gnupg/passphrase
+    --version "${version_without_prefix}"
