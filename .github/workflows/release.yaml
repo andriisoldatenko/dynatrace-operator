@@ -8,7 +8,8 @@ on:
 jobs:
   prepare:
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       id-token: write
     name: Prepare properties
     runs-on: ubuntu-latest
