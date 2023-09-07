@@ -56,7 +56,7 @@ jobs:
           PRE_RELEASE: ${{ contains(github.ref, '-rc.') }}
         run: |
           hack/build/ci/generate-release-notes.sh
-      - name: Create manifests
+      - name: Generate manifests
         env:
           version: ${{ needs.prepare.outputs.version }}
           platforms: |
@@ -66,8 +66,8 @@ jobs:
             docker.io/dynatrace/dynatrace-operator
             registry.connect.redhat.com/dynatrace/dynatrace-operator
         run: |
-          hack/build/ci/create-release-manifests.sh "$platforms" "$images" "$version"
-      - name: Rename manifests
+          hack/build/ci/generate-release-manifests.sh "$platforms" "$images" "$version"
+      - name: Rename manifests if pre-release
         if: ${{ contains(github.ref, '-rc.') }}
         run: |
           mv config/deploy/kubernetes/kubernetes-all.yaml config/deploy/kubernetes/kubernetes.yaml
@@ -77,10 +77,10 @@ jobs:
         with:
           version_without_prefix: ${{ needs.prepare.outputs.version_without_prefix }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          secring: ${{ secrets.SECRING }}
-          passphrase: ${{ secrets.PASSPHRASE }}
+          secring: ${{ secrets.HELM_SECRING }}
+          passphrase: ${{ secrets.HELM_PASSPHRASE }}
           output-dir: "./helm-pkg"
-      - name: Pre-release simple
+      - name: Create pre-release
         uses: softprops/action-gh-release@v1
         if: ${{ contains(github.ref, '-rc.') }}
         with:
@@ -92,23 +92,6 @@ jobs:
             helm-pkg/dynatrace-operator-${{ needs.prepare.outputs.version_without_prefix }}.tgz.prov
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: true
-          draft: true
-          fail_on_unmatched_files: true
-      - name: Pre-release all files
-        uses: softprops/action-gh-release@v1
-        if: ${{ !contains(github.ref, '-rc.') }}
-        with:
-          body_path: ./CHANGELOG.md
-          files: |
-            config/deploy/kubernetes/kubernetes.yaml
-            config/deploy/kubernetes/kubernetes-csi.yaml
-            config/deploy/kubernetes/gke-autopilot.yaml
-            config/deploy/openshift/openshift.yaml
-            config/deploy/openshift/openshift-csi.yaml
-            helm-pkg/dynatrace-operator-${{ needs.prepare.outputs.version_without_prefix }}.tgz
-            helm-pkg/dynatrace-operator-${{ needs.prepare.outputs.version_without_prefix }}.tgz.prov
-          token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: false
           draft: true
           fail_on_unmatched_files: true
       - name: Update index helm file
