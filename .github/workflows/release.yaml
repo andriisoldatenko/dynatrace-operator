@@ -102,7 +102,7 @@ jobs:
       - name: Create pull request for adding helm index to main branch
         uses: peter-evans/create-pull-request@v5
         with:
-          branch: main
+          base: main
           delete-branch: true
           add-paths: |
             ./config/helm/repos/stable/index.yaml
