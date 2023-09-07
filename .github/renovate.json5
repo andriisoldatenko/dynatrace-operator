@@ -5,6 +5,7 @@
   ],
   "labels": ["dependencies"],
   "digest": { "enabled": false },
+  "baseBranches": ["$default", "release-0.11", "release-0.12"],
   "enabledManagers": [ "regex", "dockerfile", "gomod", "github-actions" ],
   "regexManagers": [
     {
@@ -23,6 +24,23 @@
     }
   ],
   "packageRules": [
+    {
+      "matchBaseBranches": [
+        "/^release\\/.*/"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+      ],
+      "enabled": false
+    },
+    {
+      "matchBaseBranches": [
+        "$default",
+      ],
+      "matchUpdateTypes": ["digest", "pin", "pinDigest"],
+      "enabled": false
+    },
     {
       "matchManagers": ["dockerfile"],
       "commitMessagePrefix": "Docker:",
@@ -52,10 +70,6 @@
       "matchManagers": ["regex"],
       "commitMessagePrefix": "Dev:",
       "enabled": true
-    },
-    {
-      "matchUpdateTypes": ["digest", "pin", "pinDigest"],
-      "enabled": false
     },
     {
       "matchPackageNames": ["k8s.io/client-go"],
