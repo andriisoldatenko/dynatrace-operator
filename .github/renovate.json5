@@ -53,7 +53,7 @@
         "(^|/|\\.)otel.go$",
       ],
       matchStrings: [
-        "depName=(?<depName>.*?)\\s.*go.opentelemetry.io\\/otel\\/semconv\\/v(?<currentValue>.*)\\\"",
+        "datasource=(?<datasource>.*?)\\s.*?\"(?<depName>.*?)\\/v(?<currentValue>.*)\"",
       ],
       datasourceTemplate: "go",
     },
