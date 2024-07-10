@@ -55,7 +55,6 @@
       matchStrings: [
         "datasource=(?<datasource>.*?)\\s.*?\"(?<depName>.*?)\\/v(?<currentValue>.*)\"",
       ],
-      datasourceTemplate: "go",
     },
   ],
   packageRules: [
