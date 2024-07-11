@@ -120,6 +120,13 @@
       allowedVersions: "/^v?[0-9]+[\\.\\-][0-9]+([\\-\\.][0-9]+)*$/",
     },
     {
+      "matchPackagePatterns": [
+        "go.opentelemetry.io\\/otel*"
+      ],
+      "groupName": "opentelemetry-go monorepo",
+      "groupSlug": "opentelemetry-go-monorepo"
+    },
+    {
       matchManagers: [
         "regex",
       ],
