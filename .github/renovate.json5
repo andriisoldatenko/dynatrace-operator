@@ -53,7 +53,7 @@
         "(^|/|\\.)otel.go$",
       ],
       matchStrings: [
-        "depName=(?<depName>.*?)\\s.*go.opentelemetry.io\\/otel\\/semconv\\/v(?<currentValue>.*)\\\"",
+        "packageName=(?<packageName>.*?) depName=(?<depName>.*?)\\s.*go.opentelemetry.io\\/otel\\/semconv\\/v(?<currentValue>.*)\"",
       ],
       datasourceTemplate: "github-releases",
     },
@@ -72,11 +72,6 @@
       ],
       enabled: false,
       automerge: true,
-    },
-    {
-      "matchPackageNames": ["go.opentelemetry.io/otel/semconv"],
-      "sourceUrl": "https://github.com/open-telemetry/semantic-conventions",
-      "registryUrl": "https://github.com/open-telemetry/semantic-conventions",
     },
     {
       matchManagers: [
