@@ -56,7 +56,6 @@
         "packageName=(?<packageName>.*?) depName=(?<depName>.*?)\\s.*go.opentelemetry.io\\/otel\\/semconv\\/v(?<currentValue>.*)\"",
       ],
       datasourceTemplate: "github-releases",
-      depNameTemplate: "go.opentelemetry.io/otel/semconv"
     },
   ],
   packageRules: [
