@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/sdk/resource"
-	// renovate packageName=go.opentelemetry.io/otel/semconv depName=github.com/open-telemetry/semantic-conventions
+	// renovate packageName=open-telemetry/semantic-conventions depName=github.com/open-telemetry/semantic-conventions
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 	"k8s.io/apimachinery/pkg/types"
