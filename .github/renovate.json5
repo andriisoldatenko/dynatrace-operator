@@ -55,7 +55,7 @@
       matchStrings: [
         "packageName=(?<packageName>.*?) depName=(?<depName>.*?)\\s.*go.opentelemetry.io\\/otel\\/semconv\\/v(?<currentValue>.*)\"",
       ],
-      datasourceTemplate: "github-releases",
+      datasourceTemplate: "go",
       depNameTemplate: "github.com/open-telemetry/semantic-conventions",
     },
   ],
