@@ -14,7 +14,8 @@ image="${image_name}:${image_tag}"
 
 if [ "$multiplatform" == "true" ]
 then
-  supported_architectures=("amd64" "arm64" "ppc64le" "s390x")
+#  supported_architectures=("amd64" "arm64" "ppc64le" "s390x")
+  supported_architectures=("amd64")
   images=()
   echo "Creating manifest for ${supported_architectures[*]}"
 
