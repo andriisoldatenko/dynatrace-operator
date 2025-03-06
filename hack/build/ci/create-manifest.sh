@@ -32,12 +32,9 @@ else
 fi
 
 sha256=$(docker manifest push "${image}")
-echo "digest=${sha256}">> $GITHUB_OUTPUT
+echo "digest=${sha256}">> "$GITHUB_OUTPUT"
 
-
-image=gcr.io/test:snapshot-add-annotations-operator-and-deployer-manifests
-
-if [[ "$image" =~ "gcr.io" ]]
+if [[ "$image" =~ gcr.io ]]
 then
   go install github.com/google/go-containerregistry/cmd/crane@latest
   crane mutate "${image}" --annotation "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
