@@ -31,6 +31,7 @@ then
   then
     go install github.com/google/go-containerregistry/cmd/crane@latest
     crane mutate "${image}" --annotation "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
+    docker manifest inspect "${image}"
   fi
 else
   echo "Creating manifest for the AMD image "
@@ -40,6 +41,7 @@ else
   then
     go install github.com/google/go-containerregistry/cmd/crane@latest
     crane mutate "${image}" --annotation "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
+    docker manifest inspect "${image}"
   fi
 fi
 
