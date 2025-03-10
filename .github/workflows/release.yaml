@@ -22,9 +22,13 @@ jobs:
       - name: Docker metadata
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         id: meta
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
           images: dynatrace/dynatrace-operator
           tags: ${{ steps.prep.outputs.docker_image_tag }}
+          annotations:
+            andrii=test
           labels: |
             ${{ steps.prep.outputs.docker_image_labels }}
             vcs-ref=${{ github.sha }}
@@ -52,6 +56,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           labels: ${{ needs.prepare.outputs.labels }}
+          annotations: ${{ needs.prepare.outputs.annotations }}
           image-tag: ${{ needs.prepare.outputs.version }}
 
   push:
