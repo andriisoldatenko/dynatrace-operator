@@ -7,9 +7,6 @@ inputs:
   labels:
     description: The labels for the built image
     required: true
-  annotations:
-    description: The annotations for the built image
-    required: true
   image-tag:
     description: The tag of the built image
     required: true
@@ -46,7 +43,7 @@ runs:
         push: false
         tags: operator-${{ inputs.platform }}:${{ inputs.image-tag }}
         labels: ${{ inputs.labels }}
-        annotations: ${{ inputs.annotations }}
+        annotations: "manifest:foo=bar"
         outputs: type=docker,dest=/tmp/operator-${{ inputs.platform }}.tar
     - name: Upload artifact
       uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
