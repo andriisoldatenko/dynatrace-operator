@@ -47,6 +47,7 @@ runs:
         labels: ${{ inputs.labels }}
         oci: true
     - name: copy
+      shell: bash
       run: |
         skopeo copy containers-storage:/operator:build-${{ env.PODMAN_ARCH }} oci-archive:/tmp/${{ env.PODMAN_ARCH }}-oci.tar
     - name: Upload artifact
