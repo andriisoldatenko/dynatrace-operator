@@ -7,9 +7,6 @@ inputs:
   labels:
     description: The labels for the built image
     required: true
-  annotations:
-    description: The annotations for the built image
-    required: true
   image-tag:
     description: The tag of the built image
     required: true
@@ -33,11 +30,14 @@ runs:
       shell: bash
       run: |
         hack/build/ci/third-party-licenses.sh
+    - name: Create empty SBOM file
+      shell: bash
+      run: |
+        touch dynatrace-operator-bin-sbom.cdx.json
     - name: Build target
       uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
       with:
         builder: ${{ steps.buildx.outputs.name }}
-        # BUILDKIT_MULTI_PLATFORM=1
         build-args: |
           GO_LINKER_ARGS=${{ steps.prep.outputs.go_linker_args }}
           GO_BUILD_TAGS=${{ steps.prep.outputs.go_build_tags }}
@@ -47,10 +47,9 @@ runs:
         push: false
         tags: operator-${{ inputs.platform }}:${{ inputs.image-tag }}
         labels: ${{ inputs.labels }}
-        # annotations: ${{ inputs.annotations }}
         outputs: type=oci,dest=/tmp/operator-${{ inputs.platform }}.tar
     - name: Upload artifact
-      uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
       with:
         name: operator-${{ inputs.platform }}
         path: /tmp/operator-${{ inputs.platform }}.tar
