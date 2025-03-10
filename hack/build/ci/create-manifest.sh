@@ -26,11 +26,13 @@ then
     docker pull "${image}-${architecture}"
     images+=("${image}-${architecture}")
   done
+  # docker manifest create MANIFEST_LIST MANIFEST
   docker manifest create "${image}" "${images[@]}"
   if [[ "$image" =~ gcr.io ]]
   then
+    docker version
     go install github.com/google/go-containerregistry/cmd/crane@latest
-    crane mutate "${image}" --annotation "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
+    crane mutate --verbose "${image}" --annotation "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
     docker manifest inspect "${image}"
   fi
 else
@@ -39,8 +41,9 @@ else
   docker manifest create "${image}" "${image}-amd64"
   if [[ "$image" =~ gcr.io ]]
   then
+    docker version
     go install github.com/google/go-containerregistry/cmd/crane@latest
-    crane mutate "${image}" --annotation "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
+    crane mutate --verbose "${image}" --annotation "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
     docker manifest inspect "${image}"
   fi
 fi
