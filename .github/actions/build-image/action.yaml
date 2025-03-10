@@ -24,16 +24,16 @@ runs:
       shell: bash
       run: |
         hack/build/ci/prepare-build-variables.sh
-    - name: Download third party licenses
-      shell: bash
-      run: |
-        hack/build/ci/third-party-licenses.sh
-    - name: Create empty SBOM file
-      shell: bash
-      run: |
-        touch dynatrace-operator-bin-sbom.cdx.json
+#    - name: Download third party licenses
+#      shell: bash
+#      run: |
+#        hack/build/ci/third-party-licenses.sh
+#    - name: Create empty SBOM file
+#      shell: bash
+#      run: |
+#        touch dynatrace-operator-bin-sbom.cdx.json
     - name: Build target
-      uses: redhat-actions/buildah-build@v2
+      uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
       with:
         image: operator
         build-args: |
