@@ -28,10 +28,13 @@ jobs:
           labels: |
             ${{ steps.prep.outputs.docker_image_labels }}
             vcs-ref=${{ github.sha }}
+          env:
+            DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
     outputs:
       labels: ${{ steps.meta.outputs.labels }}
       version: ${{ steps.prep.outputs.docker_image_tag }}
       version_without_prefix: ${{ steps.prep.outputs.docker_image_tag_without_prefix }}
+      annotations: ${{ steps.meta.outputs.annotations }}
 
   build:
     name: Build images
@@ -53,6 +56,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           labels: ${{ needs.prepare.outputs.labels }}
+          annotations: ${{ needs.prepare.outputs.annotations }}
           image-tag: ${{ needs.prepare.outputs.version }}
 
   push:
