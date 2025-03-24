@@ -69,32 +69,32 @@ jobs:
     strategy:
       matrix:
         platform: [amd64, arm64, ppc64le, s390x]
-        registry: [gcr, dockerhub, amazon-ecr, rhcc]
+        registry: [gcr]
         include:
         - registry: gcr
           url: gcr.io
           repository: GCR_REPOSITORY
           username: GCR_USERNAME
           password: GCR_JSON_KEY
-        - registry: dockerhub
-          url: docker.io
-          repository: DOCKERHUB_REPOSITORY
-          username: DOCKERHUB_USERNAME
-          password: DOCKERHUB_PASSWORD
-        - registry: amazon-ecr
-          url: public.ecr.aws
-          repository: ECR_REPOSITORY
-        - registry: rhcc
-          url: quay.io
-          username: RHCC_USERNAME
-          password: RHCC_PASSWORD
-          repository: RHCC_REPOSITORY
+#        - registry: dockerhub
+#          url: docker.io
+#          repository: DOCKERHUB_REPOSITORY
+#          username: DOCKERHUB_USERNAME
+#          password: DOCKERHUB_PASSWORD
+#        - registry: amazon-ecr
+#          url: public.ecr.aws
+#          repository: ECR_REPOSITORY
+#        - registry: rhcc
+#          url: quay.io
+#          username: RHCC_USERNAME
+#          password: RHCC_PASSWORD
+#          repository: RHCC_REPOSITORY
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Login to Registry
         if: ${{ matrix.registry != 'amazon-ecr' }}
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         with:
           registry: ${{ matrix.url }}
           username: ${{ secrets[matrix.username] }}
@@ -119,15 +119,15 @@ jobs:
           version: ${{ needs.prepare.outputs.version }}
           registry: ${{ matrix.url }}
           repository: ${{ secrets[matrix.repository] }}
-      - name: Sign image for ${{matrix.registry}}
-        uses: ./.github/actions/sign-image
-        with:
-          image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version }}-${{ matrix.platform }}@${{steps.push-image.outputs.digest}}
-          signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          signing-password: ${{ secrets.COSIGN_PASSWORD }}
+#      - name: Sign image for ${{matrix.registry}}
+#        uses: ./.github/actions/sign-image
+#        with:
+#          image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version }}-${{ matrix.platform }}@${{steps.push-image.outputs.digest}}
+#          signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+#          signing-password: ${{ secrets.COSIGN_PASSWORD }}
 
   manifest:
-    name: Create Docker manifests
+    name: Create manifests
     environment: Release
     needs: [prepare, push]
     runs-on: ubuntu-latest
@@ -137,32 +137,32 @@ jobs:
       digest: ${{ steps.create-manifests.outputs.digest }}
     strategy:
       matrix:
-        registry: [gcr, dockerhub, amazon-ecr, rhcc]
+        registry: [gcr]
         include:
           - registry: gcr
             url: gcr.io
             repository: GCR_REPOSITORY
             username: GCR_USERNAME
             password: GCR_JSON_KEY
-          - registry: dockerhub
-            url: docker.io
-            repository: DOCKERHUB_REPOSITORY
-            username: DOCKERHUB_USERNAME
-            password: DOCKERHUB_PASSWORD
-          - registry: amazon-ecr
-            url: public.ecr.aws
-            repository: ECR_REPOSITORY
-          - registry: rhcc
-            url: quay.io
-            username: RHCC_USERNAME
-            password: RHCC_PASSWORD
-            repository: RHCC_REPOSITORY
+#          - registry: dockerhub
+#            url: docker.io
+#            repository: DOCKERHUB_REPOSITORY
+#            username: DOCKERHUB_USERNAME
+#            password: DOCKERHUB_PASSWORD
+#          - registry: amazon-ecr
+#            url: public.ecr.aws
+#            repository: ECR_REPOSITORY
+#          - registry: rhcc
+#            url: quay.io
+#            username: RHCC_USERNAME
+#            password: RHCC_PASSWORD
+#            repository: RHCC_REPOSITORY
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Login to Registry
         if: ${{ matrix.registry != 'amazon-ecr' }}
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         with:
           registry: ${{ matrix.url }}
           username: ${{ secrets[matrix.username] }}
@@ -185,7 +185,8 @@ jobs:
           version: ${{ needs.prepare.outputs.version }}
           registry: ${{ matrix.url }}
           repository: ${{ secrets[matrix.repository] }}
-          combined: true
+          platforms: "amd64, arm64, ppc64le, s390x"
+          annotation: "com.googleapis.cloudmarketplace.product.service.name=services/dynatrace-operator-dynatrace-marketplace-prod.cloudpartnerservices.goog"
       - name: Sign images for ${{matrix.registry}}
         uses: ./.github/actions/sign-image
         with:
@@ -222,7 +223,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Login to Registry
         if: ${{ matrix.registry != 'amazon-ecr' }}
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         with:
           registry: ${{ matrix.url }}
           username: ${{ secrets[matrix.username] }}
@@ -266,7 +267,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Login to Registry
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         with:
           registry: ${{ env.SCAN_REGISTRY }}
           username: ${{ secrets.RHCC_USERNAME }}
@@ -329,7 +330,7 @@ jobs:
         run: |
           helm registry login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_PASSWORD }}" "registry.hub.docker.com"
       - name: Login Docker to dockerhub
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
