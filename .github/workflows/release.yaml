@@ -49,12 +49,12 @@ jobs:
 #          registry: gcr.io
 #          username: ${{ secrets.GCR_USERNAME }}
 #          password: ${{ secrets.GCR_JSON_KEY }}
-      - name: Login to RHCC
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
-        with:
-          registry: quay.io
-          username: ${{ secrets.RHCC_USERNAME }}
-          password: ${{ secrets.RHCC_PASSWORD }}
+#      - name: Login to RHCC
+#        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+#        with:
+#          registry: quay.io
+#          username: ${{ secrets.RHCC_USERNAME }}
+#          password: ${{ secrets.RHCC_PASSWORD }}
 #      - name: Login to Docker
 #        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
 #        with:
