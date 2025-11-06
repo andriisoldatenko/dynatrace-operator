@@ -24,6 +24,7 @@
 
 ## General
 
+- Consider the [Effective Go](https://go.dev/doc/effective_go#package-names) guidelines when naming packages
 - Use descriptive (variable) names
   - Shortnames for known Kubernetes Objects are fine. (`ns` for namespace)
   - Avoid "stuttering". (In the `beepboop` package don't call you `struct` `BeepBoopController`, but just `Controller`)
@@ -91,6 +92,22 @@ if value2 {
   do()
 }
 ```
+
+## Go struct field alignment
+
+Short summary what this is:
+
+> Field alignment in Go refers to how the memory layout of `struct` fields is organized to meet specific alignment requirements, which can improve performance and reduce memory usage. Proper alignment ensures that fields are stored at memory addresses that are multiples of their size, minimizing padding and optimizing access speed on modern CPUs.
+
+And why you do not need to use it:
+
+- The performance benefits for most cases are negligible, or even undetectable.
+- Ordering the fields in a `struct` for "cpu efficiency" can/will sacrifice "human understandability" of the `struct`.
+  - In the majority of the cases, we value "human understandability" over "cpu efficiency".
+
+When to use it:
+
+- If you have a scenario (for specific `structs`), where you **can back it up with benchmarks** that it makes a significant difference.
 
 ## Reconciler vs Controller
 

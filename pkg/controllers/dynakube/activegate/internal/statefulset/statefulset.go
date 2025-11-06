@@ -15,6 +15,7 @@ import (
 	"github.com/Dynatrace/dynatrace-operator/pkg/util/kubeobjects/statefulset"
 	maputils "github.com/Dynatrace/dynatrace-operator/pkg/util/map"
 	"github.com/Dynatrace/dynatrace-operator/pkg/util/prioritymap"
+	"github.com/Dynatrace/dynatrace-operator/pkg/webhook/mutation/pod/mutator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -95,6 +96,7 @@ func (statefulSetBuilder Builder) getBaseSpec() appsv1.StatefulSetSpec {
 				Annotations: map[string]string{
 					consts.AnnotationActiveGateConfigurationHash: statefulSetBuilder.configHash,
 					consts.AnnotationActiveGateTenantTokenHash:   statefulSetBuilder.dynakube.Status.ActiveGate.ConnectionInfo.TenantTokenHash,
+					mutator.InjectionSplitMounts:                 "true",
 				},
 			},
 		},
@@ -133,6 +135,7 @@ func (statefulSetBuilder Builder) addTemplateSpec(sts *appsv1.StatefulSet) {
 		TerminationGracePeriodSeconds: statefulSetBuilder.dynakube.ActiveGate().GetTerminationGracePeriodSeconds(),
 		TopologySpreadConstraints:     statefulSetBuilder.buildTopologySpreadConstraints(statefulSetBuilder.capability),
 		Volumes:                       statefulSetBuilder.buildVolumes(),
+		AutomountServiceAccountToken:  ptr.To(false),
 	}
 	sts.Spec.Template.Spec = podSpec
 }
@@ -227,6 +230,20 @@ func (statefulSetBuilder Builder) buildBaseContainer() []corev1.Container {
 			PeriodSeconds:       15,
 			FailureThreshold:    3,
 			TimeoutSeconds:      2,
+		},
+		LivenessProbe: &corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				HTTPGet: &corev1.HTTPGetAction{
+					Path: "/rest/state",
+					Port:   intstr.IntOrString{IntVal: consts.HTTPSContainerPort},
+					Scheme: "HTTPS",
+				},
+			},
+			InitialDelaySeconds: 90,
+			PeriodSeconds:       30,
+			FailureThreshold:    2,
+			TimeoutSeconds:      1,
+			SuccessThreshold:    1,
 		},
 		SecurityContext: modifiers.GetSecurityContext(false),
 		VolumeMounts:    statefulSetBuilder.buildVolumeMounts(),

@@ -361,7 +361,7 @@ func agCertVolume(dk *dynakube.DynaKube) corev1.Volume {
 				SecretName: dk.ActiveGate().GetTLSSecretName(),
 				Items: []corev1.KeyToPath{
 					{
-						Key:  dynakube.TLSCertKey,
+						Key:  dynakube.ServerCertKey,
 						Path: otelcconsts.ActiveGateCertFile,
 					},
 				},
@@ -400,7 +400,7 @@ func getTestDynakubeWithExtensionsAndTelemetryIngest() *dynakube.DynaKube {
 			Annotations: map[string]string{},
 		},
 		Spec: dynakube.DynaKubeSpec{
-			Extensions:      &extensions.Spec{PrometheusSpec: &extensions.PrometheusSpec{}},
+			Extensions:      &extensions.Spec{Prometheus: &extensions.PrometheusSpec{}},
 			TelemetryIngest: &telemetryingest.Spec{},
 			Templates:       dynakube.TemplatesSpec{OpenTelemetryCollector: dynakube.OpenTelemetryCollectorSpec{}},
 		},
