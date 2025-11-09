@@ -29,7 +29,7 @@ yq_version=v4.48.1
 # renovate depName=github.com/vladopajic/go-test-coverage/v2
 Go_test_coverage_version=v2.17.0
 # renovate depName=github.com/dkorunic/betteralign/cmd/betteralign
-betteralign_version=v0.7.3
+betteralign_version=v0.8.0
 #SETUP_ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
 setup_envtest_version=$(shell go list -m -f "{{ .Version }}" sigs.k8s.io/controller-runtime | awk -F'[v.]' '{printf "release-%d.%d", $$2, $$3}')
 
