@@ -63,11 +63,11 @@ runs:
         sudo apt-get update
         sudo apt-get install -y make
     - name: Checkout workflow scripts from ref branch
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       with:
         path: ref
     - name: Checkout target branch
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       with:
         ref: ${{ inputs.target-branch || 'main' }}
         path: target
